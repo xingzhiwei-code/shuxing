@@ -1,5 +1,6 @@
 import './style.css'
 import { initTheme } from './lib/theme'
+import { initPerformance } from './lib/plot'
 import { renderHome } from './pages/home'
 import { renderLinear } from './pages/linear'
 import { renderQuadratic } from './pages/quadratic'
@@ -31,4 +32,5 @@ function route(): void {
 
 window.addEventListener('hashchange', route)
 initTheme()
+initPerformance()
 route()

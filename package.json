@@ -7,9 +7,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "demo:gif": "node scripts/make-demo-gif.mjs"
   },
   "devDependencies": {
+    "gifenc": "^1.0.3",
+    "playwright": "^1.63.0",
+    "pngjs": "^7.0.0",
     "typescript": "^5.6.2",
     "vite": "^5.4.8"
   }

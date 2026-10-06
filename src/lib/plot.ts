@@ -45,9 +45,24 @@ export interface Plot {
   oy: number  // 原点屏幕 y
 }
 
-/** 适配 devicePixelRatio，返回 2D 上下文（须在元素已有布局尺寸后调用） */
+// —— F7 性能降级：低端机自动降低网格密度 ——
+function isLowEndDevice(): boolean {
+  const nav = navigator as Navigator & { deviceMemory?: number }
+  if (typeof nav.deviceMemory === 'number' && nav.deviceMemory > 0) return nav.deviceMemory <= 4
+  if (typeof navigator.hardwareConcurrency === 'number') return navigator.hardwareConcurrency <= 4
+  return false
+}
+
+let gridStep = 1
+
+/** 低端机把网格从每 1 单位降到每 2 单位，减少每帧描边数量 */
+export function initPerformance(): void {
+  gridStep = isLowEndDevice() ? 2 : 1
+}
+
+/** 适配 devicePixelRatio，返回 2D 上下文（须在元素已有布局尺寸后调用；DPR 上限 2 控填充率） */
 export function setupCanvas(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
-  const dpr = window.devicePixelRatio || 1
+  const dpr = Math.min(window.devicePixelRatio || 1, 2)
   const w = canvas.clientWidth
   const h = canvas.clientHeight
   canvas.width = Math.round(w * dpr)
@@ -81,16 +96,17 @@ export function sy(p: Plot, y: number): number {
 /** 绘制网格（每 1 单位一格，整数对齐） */
 export function drawGrid(p: Plot, c: Colors): void {
   const { ctx, w, h, s, ox, oy } = p
+  const step = s * gridStep
   ctx.strokeStyle = c.sep
   ctx.lineWidth = 1
   ctx.beginPath()
-  const gx0 = ((ox % s) + s) % s
-  for (let gx = gx0; gx <= w; gx += s) {
+  const gx0 = ((ox % step) + step) % step
+  for (let gx = gx0; gx <= w; gx += step) {
     const px = Math.round(gx) + 0.5
     ctx.moveTo(px, 0); ctx.lineTo(px, h)
   }
-  const gy0 = ((oy % s) + s) % s
-  for (let gy = gy0; gy <= h; gy += s) {
+  const gy0 = ((oy % step) + step) % step
+  for (let gy = gy0; gy <= h; gy += step) {
     const py = Math.round(gy) + 0.5
     ctx.moveTo(0, py); ctx.lineTo(w, py)
   }
