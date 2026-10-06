@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>数形 · iOS 交互风格参考</title>
+<style>
+  :root {
+    --bg: #F2F2F7;
+    --card: #FFFFFF;
+    --text: #000000;
+    --text-2: #3A3A3C;
+    --text-3: #8E8E93;
+    --sep: rgba(60,60,67,.12);
+    --blue: #007AFF;
+    --green: #34C759;
+    --red: #FF3B30;
+    --orange: #FF9500;
+    --radius: 12px;
+    --spring: cubic-bezier(.32,.72,.35,1);
+  }
+  [data-theme="dark"] {
+    --bg: #000000;
+    --card: #1C1C1E;
+    --text: #FFFFFF;
+    --text-2: #EBEBF5;
+    --text-3: #98989D;
+    --sep: rgba(84,84,88,.6);
+    --blue: #0A84FF;
+    --green: #30D158;
+    --red: #FF453A;
+    --orange: #FF9F0A;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  /* ---- 导航栏（iOS 大标题 + Liquid Glass） ---- */
+  .navbar {
+    position: sticky; top: 0; z-index: 50;
+    /* iOS 27 Liquid Glass：高饱和毛玻璃 + 顶部高光线 */
+    background: color-mix(in srgb, var(--card) 62%, transparent);
+    -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
+    border-bottom: .5px solid rgba(255,255,255,.18);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+    padding: calc(12px + env(safe-area-inset-top)) 16px 8px;
+  }
+  .navbar h1 { font-size: 34px; font-weight: 700; letter-spacing: -.5px; }
+  .navbar p { font-size: 13px; color: var(--text-3); margin-top: 2px; }
+
+  .wrap { max-width: 700px; margin: 0 auto; padding: 12px 16px 40px; }
+  .group-label { font-size: 13px; color: var(--text-3); text-transform: uppercase; margin: 22px 4px 6px; letter-spacing: .2px; }
+  .card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 16px; margin-bottom: 0;
+    box-shadow: 0 .5px 2px rgba(0,0,0,.04);
+  }
+  .card h2 { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+  .card .std { font-size: 13px; color: var(--text-3); margin-bottom: 12px; line-height: 1.5; }
+  .card .std b { color: var(--blue); font-weight: 600; }
+  .demo { border-top: .5px solid var(--sep); padding-top: 14px; margin-top: 4px; }
+  .hint { font-size: 12px; color: var(--text-3); margin-top: 8px; }
+
+  /* ---- 标准4：按压缩放 ---- */
+  .pressable {
+    display: inline-block; background: var(--blue); color: #fff;
+    border: none; border-radius: 12px; padding: 12px 24px;
+    font-size: 17px; font-weight: 600; font-family: inherit; cursor: pointer;
+    transition: transform .1s var(--spring), opacity .15s;
+  }
+  .pressable:active { transform: scale(.97); opacity: .92; }
+  .press-card {
+    background: var(--bg); border-radius: 12px; padding: 14px; margin-top: 10px;
+    transition: transform .1s var(--spring);
+    cursor: pointer; font-size: 15px;
+  }
+  .press-card:active { transform: scale(.97); }
+
+  /* ---- 标准1：弹簧物理 demo ---- */
+  .spring-stage {
+    position: relative; height: 120px; background: var(--bg);
+    border-radius: 12px; overflow: hidden; touch-action: none;
+  }
+  .spring-ball {
+    position: absolute; top: 38px; left: 0; width: 44px; height: 44px;
+    border-radius: 50%; background: var(--blue);
+    box-shadow: 0 4px 12px rgba(0,122,255,.35);
+  }
+
+  /* ---- 标准2：跟手函数图像 ---- */
+  #plot { width: 100%; height: 240px; display: block; background: var(--bg); border-radius: 12px; touch-action: none; }
+  .slider-row { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+  .slider-row label { font-size: 15px; width: 64px; color: var(--text-2); }
+  .slider-row output { font-size: 15px; width: 56px; text-align: right; color: var(--blue); font-weight: 600; }
+  input[type=range].ios {
+    -webkit-appearance: none; appearance: none; flex: 1; height: 28px; background: transparent; cursor: pointer;
+  }
+  input[type=range].ios::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: var(--sep); }
+  input[type=range].ios::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%;
+    background: #fff; margin-top: -12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.25), 0 0 0 .5px rgba(0,0,0,.04);
+  }
+  input[type=range].ios::-moz-range-track { height: 4px; border-radius: 2px; background: var(--sep); }
+  input[type=range].ios::-moz-range-thumb { width: 28px; height: 28px; border: none; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+  .fps { font-size: 12px; color: var(--text-3); margin-top: 6px; }
+  .fps b { color: var(--green); }
+
+  /* ---- 标准3：边界弹性 ---- */
+  .rubber-track {
+    position: relative; height: 56px; background: var(--bg);
+    border-radius: 12px; overflow: hidden; touch-action: none; user-select: none;
+  }
+  .rubber-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 50%; background: color-mix(in srgb, var(--blue) 25%, transparent); }
+  .rubber-thumb {
+    position: absolute; top: 14px; left: calc(50% - 14px); width: 28px; height: 28px;
+    border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.25);
+  }
+  .rubber-val { text-align: center; font-size: 28px; font-weight: 700; margin-top: 8px; }
+
+  /* ---- 标准5：sheet 浮层 ---- */
+  .backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,.4);
+    opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 100;
+  }
+  .backdrop.show { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 101;
+    background: var(--card); border-radius: 14px 14px 0 0;
+    padding: 8px 16px calc(20px + env(safe-area-inset-bottom));
+    transform: translateY(105%); transition: transform .38s var(--spring);
+    max-width: 700px; margin: 0 auto;
+    box-shadow: 0 -4px 24px rgba(0,0,0,.12);
+  }
+  .sheet.show { transform: translateY(0); }
+  .sheet.dragging { transition: none; }
+  .grabber { width: 36px; height: 5px; border-radius: 3px; background: var(--sep); margin: 6px auto 12px; touch-action: none; cursor: grab; }
+  .sheet h3 { font-size: 17px; margin-bottom: 8px; }
+  .sheet p { font-size: 15px; color: var(--text-2); line-height: 1.6; }
+
+  /* ---- 标准6：配色 ---- */
+  .swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+  .sw { flex: 1 1 80px; text-align: center; font-size: 11px; color: var(--text-3); }
+  .sw i { display: block; height: 44px; border-radius: 10px; margin-bottom: 4px; }
+
+  /* ---- 标准7：圆角 ---- */
+  .radii { display: flex; gap: 10px; }
+  .radii div { flex: 1; height: 64px; background: var(--blue); color: #fff; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+
+  /* ---- 标准8：排版 ---- */
+  .type-demo p { margin: 6px 0; }
+  .t-title { font-size: 28px; font-weight: 700; letter-spacing: -.3px; }
+  .t-body { font-size: 17px; line-height: 1.55; }
+  .t-foot { font-size: 13px; color: var(--text-3); }
+
+  /* ---- 标准9：深色模式开关 ---- */
+  .theme-row { display: flex; align-items: center; justify-content: space-between; font-size: 17px; }
+  .switch { position: relative; width: 51px; height: 31px; border-radius: 16px; background: var(--sep); border: none; cursor: pointer; transition: background .2s; }
+  .switch::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px;
+    border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3);
+    transition: transform .25s var(--spring);
+  }
+  .switch.on { background: var(--green); }
+  .switch.on::after { transform: translateX(20px); }
+
+  /* ---- iOS 27 · Liquid Glass 悬浮工具条 ---- */
+  .glass-demo-stage {
+    position: relative; height: 190px; border-radius: 12px; overflow: hidden;
+    background: linear-gradient(135deg, #007AFF 0%, #5E5CE6 45%, #BF5AF2 100%);
+  }
+  [data-theme="dark"] .glass-demo-stage {
+    background: linear-gradient(135deg, #0A2540 0%, #1C1C3A 50%, #2A1A3E 100%);
+  }
+  .glass-stage-label {
+    position: absolute; top: 12px; left: 14px; color: #fff;
+    font-size: 13px; font-weight: 600; text-shadow: 0 1px 4px rgba(0,0,0,.25);
+  }
+  .glass-toolbar {
+    position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+    display: flex; gap: 4px; padding: 8px; border-radius: 22px;
+    /* Liquid Glass：半透明 + 高饱和模糊 + 高光描边 + 投影 */
+    background: color-mix(in srgb, var(--card) 52%, transparent);
+    -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
+    border: .5px solid rgba(255,255,255,.28);
+    box-shadow: 0 8px 28px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.22);
+  }
+  .glass-btn {
+    width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer;
+    background: transparent; color: var(--text); font-size: 19px;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .1s var(--spring), background .15s;
+    font-family: inherit;
+  }
+  .glass-btn:active { transform: scale(.9); background: rgba(120,120,128,.18); }
+  .glass-btn.primary { background: var(--blue); color: #fff; }
+  .glass-btn.primary:active { background: var(--blue); opacity: .9; transform: scale(.9); }
+  .glass-rules { font-size: 13px; color: var(--text-3); line-height: 1.7; margin-top: 10px; }
+  .glass-rules b { color: var(--text-2); }
+  .a11y-note { font-size: 14px; color: var(--text-2); line-height: 1.6; background: var(--bg); border-radius: 10px; padding: 12px; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+  /* iOS 27 全局透明度调节的 Web 等价：跟随系统"减少透明度"降级为实色 */
+  @media (prefers-reduced-transparency: reduce) {
+    .glass-toolbar, .navbar, .sheet {
+      -webkit-backdrop-filter: none; backdrop-filter: none;
+    }
+    .glass-toolbar { border-color: var(--sep); box-shadow: 0 8px 28px rgba(0,0,0,.12); }
+  }
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <h1>交互风格参考</h1>
+  <p>数形项目宪法附录 · 标杆：iOS 系统级交互 · 本页即参考实现，编码时照抄</p>
+</div>
+
+<div class="wrap">
+
+  <!-- 标准1 -->
+  <div class="group-label">标准 1 · 弹簧物理</div>
+  <div class="card">
+    <h2>Spring，而非线性</h2>
+    <div class="std">所有过渡动画使用 <b>spring（阻尼弹簧）</b>或 iOS 式 easeInOut；<b>禁止</b>线性动画和生硬跳变。点击小球把它弹到另一边——注意它 overshoot 再回稳的物理感。</div>
+    <div class="demo">
+      <div class="spring-stage" id="springStage"><div class="spring-ball" id="springBall"></div></div>
+      <div class="hint">点击空白处，小球以弹簧物理弹过去（stiffness 170 / damping 26，iOS 常用量级）</div>
+    </div>
+  </div>
+
+  <!-- 标准2 -->
+  <div class="group-label">标准 2 · 跟手（60fps）</div>
+  <div class="card">
+    <h2>拖参数，图像实时跟</h2>
+    <div class="std">拖滑杆时图像<b>实时跟随</b>，目标 60fps，无肉眼可感知的延迟。这是"拖参数看图像"的生死线，也是本项目的 killer 交互范例。</div>
+    <div class="demo">
+      <canvas id="plot"></canvas>
+      <div class="slider-row"><label>y = kx</label><input type="range" class="ios" id="kSlider" min="-3" max="3" step="0.05" value="1"><output id="kVal" class="tnum">1.00</output></div>
+      <div class="slider-row"><label>+ b</label><input type="range" class="ios" id="bSlider" min="-5" max="5" step="0.1" value="0"><output id="bVal" class="tnum">0.0</output></div>
+      <div class="fps">渲染帧率：<b id="fpsVal" class="tnum">—</b> fps（拖动时观察，应稳定 60 左右）</div>
+    </div>
+  </div>
+
+  <!-- 标准3 -->
+  <div class="group-label">标准 3 · 边界弹性</div>
+  <div class="card">
+    <h2>到头了？弹一下</h2>
+    <div class="std">滑到 min/max 时有<b>回弹反馈</b>（橡皮筋），不生硬截断。把下面的圆点拖到两端试试——超出部分按 0.35 阻尼跟随，松手弹回。</div>
+    <div class="demo">
+      <div class="rubber-track" id="rubberTrack"><div class="rubber-fill" id="rubberFill"></div><div class="rubber-thumb" id="rubberThumb"></div></div>
+      <div class="rubber-val tnum" id="rubberVal">50</div>
+    </div>
+  </div>
+
+  <!-- 标准4 -->
+  <div class="group-label">标准 4 · 按压缩放</div>
+  <div class="card">
+    <h2>按下去，有反应</h2>
+    <div class="std">可交互元素 active 态 <b>0.97 缩放</b>，100ms 内给出视觉反馈。按住下面的按钮和卡片试试。</div>
+    <div class="demo">
+      <button class="pressable">按住我</button>
+      <div class="press-card">☝️ 这是一张卡片，按住也有 0.97 缩放——列表项、知识点卡片全部统一这个行为</div>
+    </div>
+  </div>
+
+  <!-- 标准5 -->
+  <div class="group-label">标准 5 · Sheet 浮层</div>
+  <div class="card">
+    <h2>从底部升起，可下滑关闭</h2>
+    <div class="std"><b>sheet 式浮层</b>，移动端可下滑关闭；背景 scrim 渐显。知识点详情、设置页都用这个形态。</div>
+    <div class="demo"><button class="pressable" id="openSheet">打开 Sheet</button></div>
+  </div>
+
+  <!-- iOS 27 · Liquid Glass -->
+  <div class="group-label">iOS 27 · 液态玻璃</div>
+  <div class="card">
+    <h2>玻璃只用在"浮起来"的地方</h2>
+    <div class="std">iOS 27 设计语言核心：<b>Liquid Glass</b>（高饱和毛玻璃 + 高光描边）。下面的悬浮工具条可以直接控制上面标准 2 的函数图像——播放/暂停/重置，感受玻璃质感 + 真实联动。</div>
+    <div class="demo">
+      <div class="glass-demo-stage">
+        <div class="glass-stage-label">y = kx + b · 联动演示</div>
+        <div class="glass-toolbar">
+          <button class="glass-btn primary" id="glassPlay" aria-label="播放">▶</button>
+          <button class="glass-btn" id="glassPause" aria-label="暂停">⏸</button>
+          <button class="glass-btn" id="glassReset" aria-label="重置">↺</button>
+        </div>
+      </div>
+      <div class="glass-rules">
+        <b>使用规范（写进宪法）：</b><br>
+        · 只用在浮层类：导航栏、sheet、悬浮工具条。不用在大面积背景和卡片内容区（可读性 + 性能）。<br>
+        · 配方：<span class="tnum">blur(24px) saturate(1.8)</span> + 0.5px 高光描边 + 柔投影 + 内高光。<br>
+        · 性能：backdrop-filter 只出现在浮层上；跟随系统"减少透明度"自动降级为实色（本页已接入）。<br>
+        · 视觉减法：能用间距/底色分层的，不用轮廓线；iOS 27 把状态栏图标都去边框圆润化了，咱们跟上。
+      </div>
+    </div>
+  </div>
+
+  <!-- 标准6 -->
+  <div class="group-label">标准 6 · 克制配色</div>
+  <div class="card">
+    <h2>单屏主色 ≤ 3 种</h2>
+    <div class="std">iOS 系统色板优先。强调色只用于<b>可交互元素</b>和关键数据，装饰不用彩色。</div>
+    <div class="demo">
+      <div class="swatches">
+        <div class="sw"><i style="background:#007AFF"></i>Blue<br>主强调</div>
+        <div class="sw"><i style="background:#34C759"></i>Green<br>成功/通过</div>
+        <div class="sw"><i style="background:#FF3B30"></i>Red<br>警告/删除</div>
+        <div class="sw"><i style="background:#FF9500"></i>Orange<br>提醒</div>
+        <div class="sw"><i style="background:#8E8E93"></i>Gray<br>次要文字</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 标准7 -->
+  <div class="group-label">标准 7 · 统一圆角</div>
+  <div class="card">
+    <h2>圆角是设计语言</h2>
+    <div class="std">卡片 <b>10–14px</b> continuous 风格圆角，全站一致；按钮 12px；小标签 8px。不许出现直角卡片和随意圆角。</div>
+    <div class="demo">
+      <div class="radii">
+        <div style="border-radius:8px">8px<br>小标签</div>
+        <div style="border-radius:12px">12px<br>卡片/按钮</div>
+        <div style="border-radius:14px">14px<br>大卡片</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 标准8 -->
+  <div class="group-label">标准 8 · 排版</div>
+  <div class="card">
+    <h2>字要站得稳</h2>
+    <div class="std"><b>-apple-system</b> 字体栈优先；数字用 <b>tabular-nums</b>（等宽数字，跳动时不抖）；正文 ≥14px。</div>
+    <div class="demo type-demo">
+      <p class="t-title">大标题 28pt 加粗</p>
+      <p class="t-body">正文 17pt，行高 1.55。数学公式与数字用专用排版：y = 2x + 3，x ∈ ℝ。</p>
+      <p class="t-foot">脚注 13pt 灰色。下面这行数字在变化时不会左右抖：<span class="tnum" id="tnumDemo">1234567890</span></p>
+    </div>
+  </div>
+
+  <!-- 标准9 -->
+  <div class="group-label">标准 9 · 深色模式</div>
+  <div class="card">
+    <h2>Dark Mode 是标配</h2>
+    <div class="std">v1 支持，v0 架构预留（全站用 CSS 变量，不写死颜色）。点右边的开关，全页实时切换——这就是"预留"的样子。</div>
+    <div class="demo"><div class="theme-row"><span>深色模式</span><button class="switch" id="themeSwitch" aria-label="切换深色模式"></button></div></div>
+  </div>
+
+  <!-- 标准10 -->
+  <div class="group-label">标准 10 · 无障碍</div>
+  <div class="card">
+    <h2>尊重系统设置</h2>
+    <div class="std">跟随系统"<b>减少动态效果</b>"设置。本页已接入 <span class="tnum">prefers-reduced-motion</span>：当系统开启后，所有弹簧/过渡自动降为瞬时。</div>
+    <div class="demo"><div class="a11y-note">去系统设置 → 辅助功能 → 动态效果 → 打开"减弱动态效果"，再回来看本页：小球瞬移、sheet 直接出现。这就是正确行为。</div></div>
+  </div>
+
+  <div class="group-label">给编码 Agent 的话</div>
+  <div class="card">
+    <div class="std" style="margin:0">本文件是宪法附录"UI/交互/动画风格标准"的<b>参考实现</b>。实现新页面时：直接复制本页的 CSS 变量、动效曲线（<span class="tnum">cubic-bezier(.32,.72,.35,1)</span>）、滑杆/按钮/sheet 组件代码，保持全站一致。yiyi 验收时会按这 10 条逐条走查。</div>
+  </div>
+
+</div>
+
+<!-- Sheet -->
+<div class="backdrop" id="backdrop"></div>
+<div class="sheet" id="sheet">
+  <div class="grabber" id="grabber"></div>
+  <h3>知识点详情（示例）</h3>
+  <p>这里以后放"一次函数"的三段式内容：概念引入 → 交互探索 → 例题验证。按住顶部小横条往下滑，可以关闭——和 iOS 系统 sheet 手感一致。</p>
+  <div style="margin-top:16px"><button class="pressable" id="closeSheet">关闭</button></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- 标准1：弹簧物理 ---------- */
+  var stage = document.getElementById('springStage'),
+      ball = document.getElementById('springBall'),
+      bx = 20, bv = 0, bTarget = 20, raf = null;
+  var K = 170, C = 26;
+  function springTick(){
+    var dt = 1/60;
+    var F = -K * (bx - bTarget) - C * bv;
+    bv += F * dt; bx += bv * dt;
+    ball.style.transform = 'translateX(' + bx + 'px)';
+    if (Math.abs(bv) > 0.05 || Math.abs(bx - bTarget) > 0.05) {
+      raf = requestAnimationFrame(springTick);
+    } else { ball.style.transform = 'translateX(' + bTarget + 'px)'; bx = bTarget; bv = 0; raf = null; }
+  }
+  function kick(x){
+    bTarget = Math.max(0, Math.min(x, stage.clientWidth - 44));
+    if (!raf) raf = requestAnimationFrame(springTick);
+  }
+  stage.addEventListener('pointerdown', function(e){
+    var r = stage.getBoundingClientRect();
+    kick(e.clientX - r.left - 22);
+  });
+
+  /* ---------- 标准2：跟手函数图像 ---------- */
+  var canvas = document.getElementById('plot'),
+      ctx = canvas.getContext('2d'),
+      kS = document.getElementById('kSlider'), bS = document.getElementById('bSlider'),
+      kV = document.getElementById('kVal'), bV = document.getElementById('bVal'),
+      fpsV = document.getElementById('fpsVal');
+  var frames = 0, lastFpsT = performance.now();
+
+  function sizeCanvas(){
+    var dpr = window.devicePixelRatio || 1,
+        w = canvas.clientWidth, h = canvas.clientHeight;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  }
+  function draw(){
+    var w = canvas.clientWidth, h = canvas.clientHeight;
+    var k = parseFloat(kS.value), b = parseFloat(bS.value);
+    kV.textContent = k.toFixed(2); bV.textContent = b.toFixed(1);
+    ctx.clearRect(0, 0, w, h);
+    var ox = w/2, oy = h/2, s = 28; // 原点与缩放
+    // 网格
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--sep');
+    ctx.lineWidth = 1;
+    for (var gx = ox % s; gx < w; gx += s){ ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,h); ctx.stroke(); }
+    for (var gy = oy % s; gy < h; gy += s){ ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(w,gy); ctx.stroke(); }
+    // 坐标轴
+    var axisC = getComputedStyle(document.documentElement).getPropertyValue('--text-3');
+    ctx.strokeStyle = axisC; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(0,oy); ctx.lineTo(w,oy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ox,0); ctx.lineTo(ox,h); ctx.stroke();
+    // 函数 y = kx + b（数学 y 向上为正，canvas 向下为正，取反）
+    var blue = getComputedStyle(document.documentElement).getPropertyValue('--blue').trim() || '#007AFF';
+    ctx.strokeStyle = blue; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (var px = 0; px <= w; px += 2){
+      var x = (px - ox) / s, y = k * x + b;
+      var py = oy - y * s;
+      if (px === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    // 公式标注
+    ctx.fillStyle = axisC; ctx.font = '15px -apple-system, sans-serif';
+    ctx.fillText('y = ' + k.toFixed(2) + 'x + ' + b.toFixed(1), 10, 22);
+    // fps
+    frames++;
+    var now = performance.now();
+    if (now - lastFpsT >= 500){
+      fpsV.textContent = Math.round(frames * 1000 / (now - lastFpsT));
+      frames = 0; lastFpsT = now;
+    }
+  }
+  kS.addEventListener('input', draw);
+  bS.addEventListener('input', draw);
+  window.addEventListener('resize', sizeCanvas);
+  sizeCanvas();
+
+  /* ---------- 标准3：边界弹性 ---------- */
+  var track = document.getElementById('rubberTrack'),
+      thumb = document.getElementById('rubberThumb'),
+      fill = document.getElementById('rubberFill'),
+      rVal = document.getElementById('rubberVal');
+  var dragging = false, startX = 0, startP = 50;
+  function renderRubber(p){
+    var w = track.clientWidth;
+    var clamped = Math.max(0, Math.min(100, p));
+    var shown = clamped + (p - clamped) * 0.35; // 橡皮筋阻尼
+    var px = shown / 100 * w;
+    thumb.style.left = (px - 14) + 'px';
+    fill.style.width = px + 'px';
+    rVal.textContent = Math.round(clamped);
+  }
+  function rubberPos(e){
+    var r = track.getBoundingClientRect();
+    return startP + (e.clientX - startX) / r.width * 100;
+  }
+  track.addEventListener('pointerdown', function(e){
+    dragging = true; startX = e.clientX;
+    startP = parseFloat(rVal.textContent);
+    thumb.style.transition = 'none'; fill.style.transition = 'none';
+    track.setPointerCapture(e.pointerId);
+  });
+  track.addEventListener('pointermove', function(e){
+    if (!dragging) return;
+    renderRubber(rubberPos(e));
+  });
+  function endRubber(e){
+    if (!dragging) return;
+    dragging = false;
+    var p = Math.max(0, Math.min(100, rubberPos(e)));
+    // 松手：弹簧回弹到合法范围
+    thumb.style.transition = 'left .38s cubic-bezier(.32,.72,.35,1)';
+    fill.style.transition = 'width .38s cubic-bezier(.32,.72,.35,1)';
+    renderRubber(p);
+  }
+  track.addEventListener('pointerup', endRubber);
+  track.addEventListener('pointercancel', endRubber);
+  renderRubber(50);
+
+  /* ---------- 标准5：sheet ---------- */
+  var sheet = document.getElementById('sheet'),
+      backdrop = document.getElementById('backdrop'),
+      grabber = document.getElementById('grabber');
+  document.getElementById('openSheet').addEventListener('click', function(){
+    sheet.classList.add('show'); backdrop.classList.add('show');
+  });
+  function closeSheet(){
+    sheet.classList.remove('show'); backdrop.classList.remove('show');
+  }
+  document.getElementById('closeSheet').addEventListener('click', closeSheet);
+  backdrop.addEventListener('click', closeSheet);
+  var sDrag = false, sStartY = 0, sDy = 0;
+  grabber.addEventListener('pointerdown', function(e){
+    sDrag = true; sStartY = e.clientY; sDy = 0;
+    sheet.classList.add('dragging');
+    grabber.setPointerCapture(e.pointerId);
+  });
+  grabber.addEventListener('pointermove', function(e){
+    if (!sDrag) return;
+    sDy = Math.max(0, e.clientY - sStartY);
+    sheet.style.transform = 'translateY(' + sDy + 'px)';
+  });
+  function endSheet(){
+    if (!sDrag) return;
+    sDrag = false;
+    sheet.classList.remove('dragging');
+    sheet.style.transform = '';
+    if (sDy > 110) closeSheet();
+  }
+  grabber.addEventListener('pointerup', endSheet);
+  grabber.addEventListener('pointercancel', endSheet);
+
+  /* ---------- iOS 27：玻璃工具条联动函数图像 ---------- */
+  var playRaf = null, playDir = 1;
+  function stopPlay(){
+    if (playRaf){ cancelAnimationFrame(playRaf); playRaf = null; }
+  }
+  function playTick(){
+    var k = parseFloat(kS.value) + playDir * 0.03;
+    if (k > 3){ k = 3; playDir = -1; }
+    if (k < -3){ k = -3; playDir = 1; }
+    kS.value = k;
+    draw();
+    playRaf = requestAnimationFrame(playTick);
+  }
+  document.getElementById('glassPlay').addEventListener('click', function(){
+    stopPlay(); playTick();
+    // 联动：滚到函数图像处看效果
+    document.getElementById('plot').scrollIntoView({behavior:'smooth', block:'center'});
+  });
+  document.getElementById('glassPause').addEventListener('click', stopPlay);
+  document.getElementById('glassReset').addEventListener('click', function(){
+    stopPlay(); playDir = 1;
+    kS.value = 1; bS.value = 0;
+    draw();
+  });
+
+  /* ---------- 标准8：数字不抖 ---------- */
+  var tnumEl = document.getElementById('tnumDemo'), tn = 1234567890;
+  setInterval(function(){
+    tn = (tn + 137) % 10000000000;
+    tnumEl.textContent = String(tn).padStart(10, '0');
+  }, 800);
+
+  /* ---------- 标准9：深色模式 ---------- */
+  var sw = document.getElementById('themeSwitch');
+  // 跟随系统初始值
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){
+    document.documentElement.setAttribute('data-theme', 'dark');
+    sw.classList.add('on');
+  }
+  sw.addEventListener('click', function(){
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
+    sw.classList.toggle('on', !dark);
+    draw(); // 重绘 canvas 颜色
+  });
+})();
+</script>
+</body>
+</html>
