@@ -1,0 +1,180 @@
+/* ============================================================
+   数形 · 设计系统
+   唯一参考：prototype/ios-style-reference.html
+   直接复制其 CSS 变量、动效曲线（cubic-bezier(.32,.72,.35,1)）、组件代码
+   ============================================================ */
+
+:root {
+  --bg: #F2F2F7;
+  --card: #FFFFFF;
+  --text: #000000;
+  --text-2: #3A3A3C;
+  --text-3: #8E8E93;
+  --sep: rgba(60,60,67,.12);
+  --blue: #007AFF;
+  --green: #34C759;
+  --red: #FF3B30;
+  --orange: #FF9500;
+  --thumb: #FFFFFF;
+  --radius: 12px;
+  --spring: cubic-bezier(.32,.72,.35,1);
+}
+[data-theme="dark"] {
+  --bg: #000000;
+  --card: #1C1C1E;
+  --text: #FFFFFF;
+  --text-2: #EBEBF5;
+  --text-3: #98989D;
+  --sep: rgba(84,84,88,.6);
+  --blue: #0A84FF;
+  --green: #30D158;
+  --red: #FF453A;
+  --orange: #FF9F0A;
+  --thumb: #EBEBF5;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg); color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* ---- 导航栏（iOS 大标题 + Liquid Glass） ---- */
+.navbar {
+  position: sticky; top: 0; z-index: 50;
+  background: color-mix(in srgb, var(--card) 62%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
+  border-bottom: .5px solid rgba(255,255,255,.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+}
+.navbar h1 { font-size: 34px; font-weight: 700; letter-spacing: -.5px; line-height: 1.1; }
+.navbar .sub { font-size: 13px; color: var(--text-3); margin-top: 2px; }
+.navbar .back {
+  display: inline-flex; align-items: center;
+  color: var(--blue); font-size: 17px; font-weight: 500;
+  background: none; border: none; cursor: pointer;
+  padding: 4px 6px 4px 0; margin-bottom: 4px;
+  font-family: inherit; -webkit-tap-highlight-color: transparent;
+  transition: transform .1s var(--spring), opacity .15s;
+}
+.navbar .back:active { transform: scale(.97); opacity: .55; }
+.navbar .theme-btn {
+  position: absolute; top: calc(14px + env(safe-area-inset-top)); right: 16px;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: color-mix(in srgb, var(--card) 55%, transparent);
+  border: .5px solid rgba(255,255,255,.2);
+  color: var(--text); font-size: 16px; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-family: inherit;
+  transition: transform .1s var(--spring), background .15s;
+}
+.navbar .theme-btn:active { transform: scale(.9); background: rgba(120,120,128,.18); }
+
+/* ---- 布局 ---- */
+.wrap { max-width: 700px; margin: 0 auto; padding: 12px 16px 44px; }
+.group-label { font-size: 13px; color: var(--text-3); text-transform: uppercase; margin: 20px 4px 6px; letter-spacing: .2px; }
+.foot-note { font-size: 13px; color: var(--text-3); text-align: center; margin-top: 18px; }
+
+/* ---- 卡片 ---- */
+.card {
+  background: var(--card); border-radius: var(--radius);
+  padding: 16px; margin-bottom: 12px;
+  box-shadow: 0 .5px 2px rgba(0,0,0,.04);
+}
+.card h2 { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+.card .lead { font-size: 15px; color: var(--text-2); line-height: 1.6; }
+.card .lead b { color: var(--text); font-weight: 600; }
+
+/* ---- 公式排版 ---- */
+.formula {
+  margin: 12px 0 2px; font-size: 26px; font-weight: 600;
+  letter-spacing: .2px; font-variant-numeric: tabular-nums; line-height: 1.3;
+}
+.formula i { font-style: italic; }
+.formula .op { color: var(--text-3); }
+
+/* ---- iOS 分组列表（首页） ---- */
+.list { background: var(--card); border-radius: var(--radius); overflow: hidden; box-shadow: 0 .5px 2px rgba(0,0,0,.04); }
+.list-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 16px; font-size: 17px; color: var(--text); text-decoration: none;
+  border-top: .5px solid var(--sep); cursor: pointer;
+  transition: background .15s;
+}
+.list-item:first-child { border-top: none; }
+.list-item:active { background: var(--bg); }
+.li-title { display: flex; flex-direction: column; gap: 2px; }
+.li-sub { font-size: 13px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.list-item .arrow { color: var(--text-3); font-size: 22px; line-height: 1; font-weight: 300; }
+.list-item .tag { font-size: 13px; color: var(--text-3); white-space: nowrap; }
+.list-item.disabled { opacity: .45; cursor: default; }
+
+/* ---- 交互探索：Canvas ---- */
+.plot {
+  width: 100%; height: 380px; display: block;
+  background: var(--bg); border-radius: 12px;
+  touch-action: pan-y;
+}
+@media (max-width: 480px) { .plot { height: 320px; } }
+
+/* ---- iOS 滑杆（照抄原型） ---- */
+.slider-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+.slider-row label { font-size: 15px; width: 24px; color: var(--text-2); font-style: italic; }
+.slider-row output { font-size: 15px; width: 64px; text-align: right; color: var(--blue); font-weight: 600; }
+input[type=range].ios {
+  -webkit-appearance: none; appearance: none; flex: 1; height: 28px; background: transparent; cursor: pointer;
+}
+input[type=range].ios::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: var(--sep); }
+input[type=range].ios::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--thumb); margin-top: -12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.25), 0 0 0 .5px rgba(0,0,0,.04);
+}
+input[type=range].ios::-moz-range-track { height: 4px; border-radius: 2px; background: var(--sep); }
+input[type=range].ios::-moz-range-thumb { width: 28px; height: 28px; border: none; border-radius: 50%; background: var(--thumb); box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+
+/* ---- 状态徽标 ---- */
+.status {
+  margin-top: 14px; padding: 10px 12px; border-radius: 10px;
+  font-size: 14px; color: var(--text-2); background: var(--bg);
+  line-height: 1.5; transition: background .2s, color .2s;
+}
+.status .dir { color: var(--blue); font-weight: 700; }
+.status.flat { background: color-mix(in srgb, var(--orange) 20%, transparent); color: var(--text); }
+
+/* ---- 引导任务 ---- */
+.hint { font-size: 12px; color: var(--text-3); margin-top: 12px; }
+.tasks { list-style: none; margin-top: 6px; }
+.tasks li {
+  position: relative; padding-left: 18px; font-size: 14px;
+  color: var(--text-2); line-height: 1.55; margin-bottom: 5px;
+}
+.tasks li::before { content: "·"; position: absolute; left: 5px; top: -1px; color: var(--blue); font-weight: 700; font-size: 16px; }
+
+/* ---- 例题验证 ---- */
+.q { font-size: 16px; line-height: 1.6; font-variant-numeric: tabular-nums; }
+.answer-toggle {
+  margin-top: 12px; color: var(--blue); background: none; border: none;
+  font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; padding: 4px 0;
+  transition: opacity .15s, transform .1s var(--spring);
+}
+.answer-toggle:active { transform: scale(.97); opacity: .6; }
+.answer { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .38s var(--spring); }
+.answer > div { overflow: hidden; }
+.answer.open { grid-template-rows: 1fr; }
+.answer p { padding-top: 10px; font-size: 15px; color: var(--text-2); line-height: 1.6; }
+.answer p b { color: var(--text); }
+
+/* ---- 无障碍（标准 10 / iOS 27 降级） ---- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .navbar { -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
