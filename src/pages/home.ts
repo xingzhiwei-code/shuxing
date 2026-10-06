@@ -14,14 +14,14 @@ export function renderHome(root: HTMLElement): () => void {
           <span class="li-title">一次函数<span class="li-sub">y = kx + b</span></span>
           <span class="arrow">›</span>
         </a>
-        <div class="list-item disabled">
+        <a class="list-item" href="#/quadratic">
           <span class="li-title">二次函数<span class="li-sub">y = ax² + bx + c</span></span>
-          <span class="tag">即将上线</span>
-        </div>
-        <div class="list-item disabled">
+          <span class="arrow">›</span>
+        </a>
+        <a class="list-item" href="#/inverse">
           <span class="li-title">反比例函数<span class="li-sub">y = k/x</span></span>
-          <span class="tag">即将上线</span>
-        </div>
+          <span class="arrow">›</span>
+        </a>
       </div>
       <p class="foot-note">拖参数，看图像——30 秒看懂 k / b / a 是干嘛的。</p>
     </div>

@@ -98,6 +98,7 @@ body {
 }
 .formula i { font-style: italic; }
 .formula .op { color: var(--text-3); }
+.formula sup { font-size: 0.6em; }
 
 /* ---- iOS 分组列表（首页） ---- */
 .list { background: var(--card); border-radius: var(--radius); overflow: hidden; box-shadow: 0 .5px 2px rgba(0,0,0,.04); }
@@ -122,6 +123,8 @@ body {
   touch-action: pan-y;
 }
 @media (max-width: 480px) { .plot { height: 320px; } }
+.plot.draggable { touch-action: none; cursor: grab; }
+.plot.draggable:active { cursor: grabbing; }
 
 /* ---- iOS 滑杆（照抄原型） ---- */
 .slider-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
@@ -147,6 +150,10 @@ input[type=range].ios::-moz-range-thumb { width: 28px; height: 28px; border: non
 }
 .status .dir { color: var(--blue); font-weight: 700; }
 .status.flat { background: color-mix(in srgb, var(--orange) 20%, transparent); color: var(--text); }
+.status .row { margin: 3px 0; line-height: 1.5; }
+.status .row:first-child { margin-top: 0; }
+.status .row:last-child { margin-bottom: 0; }
+.num { font-variant-numeric: tabular-nums; color: var(--blue); font-weight: 600; }
 
 /* ---- 引导任务 ---- */
 .hint { font-size: 12px; color: var(--text-3); margin-top: 12px; }

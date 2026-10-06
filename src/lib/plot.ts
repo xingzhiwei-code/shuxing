@@ -7,6 +7,7 @@ export interface Colors {
   text: string
   line: string
   point: string
+  orange: string
 }
 
 const DEFAULTS: Colors = {
@@ -15,6 +16,7 @@ const DEFAULTS: Colors = {
   text: '#3A3A3C',
   line: '#007AFF',
   point: '#FF3B30',
+  orange: '#FF9500',
 }
 
 /** 从 CSS 变量读取当前主题色（主题切换后重绘即生效） */
@@ -30,6 +32,7 @@ export function getColors(): Colors {
     text: v('--text-2', DEFAULTS.text),
     line: v('--blue', DEFAULTS.line),
     point: v('--red', DEFAULTS.point),
+    orange: v('--orange', DEFAULTS.orange),
   }
 }
 
@@ -94,8 +97,8 @@ export function drawGrid(p: Plot, c: Colors): void {
   ctx.stroke()
 }
 
-/** 绘制坐标轴（含箭头、轴名、整数刻度、原点 O） */
-export function drawAxes(p: Plot, c: Colors): void {
+/** 绘制坐标轴（含箭头、轴名、整数刻度、原点 O）；dashed=true 时轴为虚线（反比例函数的渐近线） */
+export function drawAxes(p: Plot, c: Colors, dashed = false): void {
   const { ctx, w, h, s, ox, oy } = p
   ctx.strokeStyle = c.axis
   ctx.fillStyle = c.axis
@@ -105,8 +108,10 @@ export function drawAxes(p: Plot, c: Colors): void {
   ctx.textBaseline = 'middle'
 
   // 轴
+  if (dashed) ctx.setLineDash([6, 5])
   ctx.beginPath(); ctx.moveTo(0, oy); ctx.lineTo(w, oy); ctx.stroke()
   ctx.beginPath(); ctx.moveTo(ox, 0); ctx.lineTo(ox, h); ctx.stroke()
+  ctx.setLineDash([])
 
   // 箭头
   ctx.beginPath(); ctx.moveTo(w - 1, oy); ctx.lineTo(w - 7, oy - 3); ctx.lineTo(w - 7, oy + 3); ctx.closePath(); ctx.fill()
@@ -133,6 +138,51 @@ export function drawAxes(p: Plot, c: Colors): void {
   // 原点
   ctx.textAlign = 'left'
   ctx.fillText('O', ox + 5, oy + 13)
+}
+
+/** 绘制数据点：实心圆 + 可选坐标文字（label 默认在点右上） */
+export function drawPoint(
+  p: Plot,
+  x: number, y: number,
+  color: string,
+  label?: string,
+  radius = 4.5,
+  dx = 10, dy = -8,
+): void {
+  const { ctx } = p
+  const px = sx(p, x)
+  const py = sy(p, y)
+  if (px < -40 || px > p.w + 40 || py < -40 || py > p.h + 40) return
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.arc(px, py, radius, 0, Math.PI * 2)
+  ctx.fill()
+  if (label) {
+    ctx.fillStyle = color
+    ctx.font = '600 13px -apple-system, sans-serif'
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'bottom'
+    ctx.fillText(label, px + dx, py + dy)
+  }
+}
+
+/** 绘制虚线（世界坐标 → 屏幕） */
+export function dashedLine(
+  p: Plot,
+  x1: number, y1: number, x2: number, y2: number,
+  color: string,
+  width = 1.5,
+): void {
+  const { ctx } = p
+  ctx.save()
+  ctx.strokeStyle = color
+  ctx.lineWidth = width
+  ctx.setLineDash([6, 5])
+  ctx.beginPath()
+  ctx.moveTo(sx(p, x1), sy(p, y1))
+  ctx.lineTo(sx(p, x2), sy(p, y2))
+  ctx.stroke()
+  ctx.restore()
 }
 
 /** 数值格式化：去尾零、去负零（用于标注与滑杆读数） */

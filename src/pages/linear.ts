@@ -2,21 +2,9 @@ import { setThemeButton } from '../lib/theme'
 import {
   getColors, setupCanvas, makePlot, drawGrid, drawAxes, sx, sy, fmt,
 } from '../lib/plot'
+import { linearFormula } from '../lib/formula'
 
 const SCALE = 30 // 每单位像素，固定视图（v0 不做缩放平移）
-
-/** y = kx + b 的规范读法（诚实处理 k=0 / b=0 / k=±1） */
-function linearFormula(k: number, b: number): string {
-  if (k === 0) return `y = ${fmt(b)}`
-  let term = ''
-  if (k === 1) term = 'x'
-  else if (k === -1) term = '−x'
-  else term = `${fmt(k)}x`
-  let s = `y = ${term}`
-  if (b > 0) s += ` + ${fmt(b)}`
-  else if (b < 0) s += ` − ${fmt(Math.abs(b))}`
-  return s
-}
 
 export function renderLinear(root: HTMLElement): () => void {
   root.innerHTML = `
