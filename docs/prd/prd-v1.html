@@ -1,0 +1,267 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><title>数形 (shuxing) · PRD v1 —— S1a 视觉重设计</title>
+<style>:root{--bg:#F2F2F7;--card:#FFF;--t1:#000;--t2:#3A3A3C;--t3:#8E8E93;--blue:#007AFF;--green:#34C759;--red:#FF3B30;--sep:#E5E5EA}
+@media(prefers-color-scheme:dark){:root{--bg:#000;--card:#1C1C1E;--t1:#FFF;--t2:#EBEBF5;--t3:#98989F;--blue:#0A84FF;--green:#30D158;--red:#FF453A;--sep:#38383A}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t1);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto;padding:32px 20px 80px}
+h1{font-size:30px;letter-spacing:-.5px}h2{font-size:22px;margin:40px 0 12px;padding-top:20px;border-top:1px solid var(--sep)}h3{font-size:18px;margin:26px 0 8px}h4{font-size:16px}
+li{margin:6px 0}ul,ol{padding-left:22px}
+blockquote{margin:16px 0;padding:4px 0 4px 16px;border-left:3px solid var(--blue);color:var(--t2)}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.86em;background:color-mix(in srgb,var(--t3) 12%,transparent);padding:2px 6px;border-radius:6px;font-variant-numeric:tabular-nums}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px;background:var(--card);border-radius:12px;overflow:hidden;display:block;overflow-x:auto}
+th,td{text-align:left;padding:9px 13px;border-bottom:1px solid var(--sep);white-space:nowrap}td:last-child,th:last-child{white-space:normal}
+th{color:var(--t2);background:color-mix(in srgb,var(--t3) 8%,transparent)}tr:last-child td{border-bottom:none}
+.sw{display:inline-block;width:13px;height:13px;border-radius:4px;vertical-align:-2px;border:1px solid var(--sep)}
+.badge{font-size:12px;font-weight:700;padding:2px 10px;border-radius:8px;white-space:nowrap}
+.badge.P0{color:var(--red);background:color-mix(in srgb,var(--red) 12%,transparent)}
+.badge.P1{color:var(--blue);background:color-mix(in srgb,var(--blue) 12%,transparent)}
+.badge.P2{color:var(--t2);background:color-mix(in srgb,var(--t3) 14%,transparent)}
+.hero{background:var(--card);border-radius:16px;padding:26px 24px;margin:20px 0;box-shadow:0 4px 24px rgba(0,0,0,.06)}
+.kicker{color:var(--blue);font-size:13px;font-weight:700;letter-spacing:1px;margin-bottom:6px}
+.meta{color:var(--t3);font-size:13px;margin-top:8px}</style></head><body><div class="wrap"><div class="hero"><div class="kicker">数形 SHUXING · PRD</div><h1>数形 (shuxing) · PRD v1 —— S1a 视觉重设计</h1><div class="meta">
+<p>版本：<strong>v1.0 定稿</strong>（2026-10-07）| 状态：待用户点头后交付编码 agent 实施</p><p>前置文档：<code>docs/prd/prd-v0.md</code>（v0 已收版，见 <code>audit/体验反馈报告-v0.md</code>）、</p><p><code>docs/constitution.md</code>（宪法，含 iOS / iOS 27 交互标准附录）、<code>docs/roadmap.md</code></p><p>配套原型：<code>prototype/v1-visual-prototype.html</code>（可交互视觉原型，验收以原型为准）</p><p>配套决策：ADR-002（版本双轨）、ADR-003（分支导航）、ADR-004（试验区渲染架构）</p></div></div>
+<p>&gt;</p>
+<blockquote><p>版本号说明（2026-10-07 用户拍板）：顶栏<strong>不展示</strong>工具版本号，ADR-002</p><p>「工具版本不出现在产品 UI」维持有效。原型中的 <code>v1.0.0</code> 展示已移除。</p></blockquote>
+<hr>
+<h2>1. 背景与目标</h2>
+<p><strong>背景</strong>：v0（S1a 函数系列：一次/二次/反比例）功能验收全部通过（F1–F8，0 P0/P1），</p>
+<p>但页面呈现停留在&quot;工程师按 PRD 拼功能&quot;阶段：坐标系像 Matplotlib 默认图、公式是纯文本硬排、</p>
+<p>三卡片垂直堆叠模板感强、首页无视觉锚点。功能正确 ≠ 好看，这是两套手艺。</p>
+<p><strong>v1 目标</strong>（一句话）：把 S1a 三个知识点页 + 首页做一次彻底的视觉重设计，</p>
+<p>确立「数形视觉语言 v1」，后续 S1b–S6 直接复用，不再返工。</p>
+<p><strong>成功的样子</strong>：用户打开页面的第一反应是&quot;这个数学工具长得好看&quot;，而不是&quot;功能挺全&quot;。</p>
+<p>截图发到 GitHub / 老师群里能自己传播。</p>
+<h2>2. 非目标（明确不做）</h2>
+<ul>
+<li>❌ 不新增任何知识点（S1b 几何等一律不进 v1）</li>
+<li>❌ 不改数学逻辑与数值（曲线算法、标注数值、边界诚实行为零改动，只改 presentation 层）</li>
+<li>❌ 不改三段式内容结构（概念→交互→例题的顺序与文案不变，只改视觉呈现）</li>
+<li>❌ 不加后端/登录/用户系统；不做导出 GIF（v3）</li>
+<li>❌ 不引入重型 UI 框架（手写 CSS + Canvas，保持包体积与 60fps）</li>
+<li>❌ 试验区整体 Canvas 化后置（见 ADR-004）：v1 保持&quot;Canvas 图形 + HTML UI&quot;混合架构，</li>
+</ul>
+<p>  公式/读数/按钮不画进 Canvas；&quot;拖拽顶点&quot;等 Canvas 级交互为 v2 候选</p>
+<h2>3. 设计原则（新增，v1 最高指导）</h2>
+<p>1. <strong>图表是主角</strong>：坐标系与曲线是页面的视觉中心，其他一切元素为它让路、为它服务。</p>
+<p>2. <strong>视觉减法</strong>（iOS 27）：能靠留白和层级表达的，不用线条和色块；网格退到背景，标注只在需要时出现。</p>
+<p>3. <strong>数学之美优先</strong>：公式排版、曲线质感、数字对齐——细节处见品味，这是数形区别于&quot;又一个练习 App&quot;的根本。</p>
+<p>4. <strong>一页一眼</strong>：任何一屏，用户 3 秒内知道&quot;看哪里、拖哪里&quot;。</p>
+<h2>4. 视觉规范（design tokens，编码 agent 直接照抄）</h2>
+<h3>4.1 色彩（语义色，单屏主色 ≤ 3 种）</h3>
+<table><thead><tr><th>token</th><th>浅色</th><th>深色</th><th>用途</th></tr></thead><tbody>
+<tr><td><code>--fn-main</code></td><td><code>#007AFF</code> <span class="sw" style="background:#007AFF"></span></td><td><code>#0A84FF</code> <span class="sw" style="background:#0A84FF"></span></td><td>函数曲线主色</td></tr>
+<tr><td><code>--fn-accent</code></td><td><code>#34C759</code> <span class="sw" style="background:#34C759"></span></td><td><code>#30D158</code> <span class="sw" style="background:#30D158"></span></td><td>正向语义（上升/k&gt;0/Δ&gt;0）</td></tr>
+<tr><td><code>--fn-warn</code></td><td><code>#FF3B30</code> <span class="sw" style="background:#FF3B30"></span></td><td><code>#FF453A</code> <span class="sw" style="background:#FF453A"></span></td><td>关键标注点（顶点/截距/矩形点）</td></tr>
+<tr><td><code>--text-1/2/3</code></td><td><code>#1C1A16</code> <span class="sw" style="background:#1C1A16"></span> / <code>#4A453C</code> <span class="sw" style="background:#4A453C"></span> / <code>#8E8E93</code> <span class="sw" style="background:#8E8E93"></span></td><td><code>#FFFFFF</code> <span class="sw" style="background:#FFFFFF"></span> / <code>#EBEBF5</code> <span class="sw" style="background:#EBEBF5"></span> / <code>#98989F</code> <span class="sw" style="background:#98989F"></span></td><td>三级文字</td></tr>
+<tr><td><code>--grid</code></td><td><code>#E9E3D3</code> <span class="sw" style="background:#E9E3D3"></span>（弱）</td><td><code>#2C2C2E</code> <span class="sw" style="background:#2C2C2E"></span>（弱）</td><td>网格线：<strong>弱到刚好能看见</strong></td></tr>
+<tr><td><code>--axis</code></td><td><code>#8E8E93</code> <span class="sw" style="background:#8E8E93"></span></td><td><code>#98989F</code> <span class="sw" style="background:#98989F"></span></td><td>坐标轴线</td></tr>
+<tr><td><code>--card</code></td><td><code>#FFFDF8</code> <span class="sw" style="background:#FFFDF8"></span></td><td><code>#1C1C1E</code> <span class="sw" style="background:#1C1C1E"></span></td><td>卡片底</td></tr>
+<tr><td><code>--bg</code></td><td><code>#F4F1EA</code> <span class="sw" style="background:#F4F1EA"></span></td><td><code>#000000</code> <span class="sw" style="background:#000000"></span></td><td>页面底（浅色为暖纸，实验室手账感）</td></tr>
+<tr><td><code>--sep</code></td><td><code>#E8E1D1</code> <span class="sw" style="background:#E8E1D1"></span></td><td><code>#38383A</code> <span class="sw" style="background:#38383A"></span></td><td>分隔线 / 桌面工作台 hairline 边框</td></tr>
+</tbody></table>
+<p>规则：曲线只用 <code>--fn-main</code>；标注点只用 <code>--fn-warn</code>；语义文字（上升/下降）用 accent/warn；</p>
+<p>网格线透明度以&quot;余光能感知、直视不抢戏&quot;为准。</p>
+<p><strong>边框规则</strong>：手机端卡片无边框（iOS 浮卡）；桌面端工作台面板（目录/实验台/参数/分解）统一 1px <code>--sep</code> hairline 边框 + 弱阴影（<code>0 2px 10px rgba(60,50,30,.05)</code>），从&quot;浮卡&quot;变为&quot;仪器面板&quot;——这是管理后台感的来源。</p>
+<h3>4.1.1 Entity-color binding（实体色彩绑定，P0 视觉签名）</h3>
+<p>源自 3Blue1Brown 的核心手法（2026 前沿调研结论）：<strong>同一数学实体，全场同一种颜色</strong>——</p>
+<p>公式里的符号、图表上的几何化身、滑杆、标注点、读数，全部绑定同一 hue。</p>
+<p>颜色成为语义，不是装饰。</p>
+<table><thead><tr><th>实体</th><th>token</th><th>浅色 / 深色</th><th>绑定位置</th></tr></thead><tbody>
+<tr><td>k / a（主参数）</td><td><code>--fn-main</code></td><td><code>#007AFF</code> <span class="sw" style="background:#007AFF"></span> / <code>#0A84FF</code> <span class="sw" style="background:#0A84FF"></span></td><td>公式符号、曲线、滑杆名/填充/数值、k 相关标注</td></tr>
+<tr><td>b（一次）/ c（二次）</td><td><code>--ent-b</code></td><td><code>#FF9500</code> <span class="sw" style="background:#FF9500"></span> / <code>#FF9F0A</code> <span class="sw" style="background:#FF9F0A"></span></td><td>公式符号、截距点、滑杆</td></tr>
+<tr><td>b（二次）</td><td><code>--ent-t</code></td><td><code>#5AC8FA</code> <span class="sw" style="background:#5AC8FA"></span> / <code>#64D2FF</code> <span class="sw" style="background:#64D2FF"></span></td><td>公式符号、滑杆</td></tr>
+<tr><td>顶点 / 关键点</td><td><code>--fn-warn</code></td><td><code>#FF3B30</code> <span class="sw" style="background:#FF3B30"></span> / <code>#FF453A</code> <span class="sw" style="background:#FF453A"></span></td><td>顶点标注点 + chip、概念正文中的&quot;顶点&quot;</td></tr>
+</tbody></table>
+<p>约束：单页实体色 ≤ 4 种；不得为装饰引入新 hue；深色模式每种实体色有对应变体。</p>
+<h3>4.2 字阶（iOS 动态字体精神，固定 scale）</h3>
+<ul>
+<li>大标题 34 / 加粗（页面标题，如&quot;二次函数&quot;）</li>
+<li>副标题 15 / <code>--text-3</code>（&quot;y = ax² + bx + c · 拖参数看开口、顶点、对称轴&quot;）</li>
+<li>卡片标题 20 / 加粗（&quot;交互探索&quot;）</li>
+<li>正文 16 / <code>--text-1</code>（概念引入文案）</li>
+<li>标注 13 / <code>--text-2</code>（引导任务、状态条文字）</li>
+<li>刻度 11 / <code>--text-3</code> / <code>tabular-nums</code>（坐标轴数字、滑杆数值）</li>
+</ul>
+<h3>4.3 间距与圆角（4pt 基准）</h3>
+<ul>
+<li>页面边距 16；卡片内边距 20；卡片间距 12；卡片圆角 16（连续圆角观感）</li>
+<li>chip（状态条/小标签）圆角 8，内边距 8/12</li>
+<li>图表区与滑杆区间距 ≥ 20，给图表呼吸感</li>
+</ul>
+<h3>4.4 公式排版（本次最掉价的单点，P0 级视觉项）</h3>
+<ul>
+<li>全站数学公式统一用 <strong>KaTeX</strong> 渲染（npm 引入，按需加载，体积可接受）</li>
+<li>行内公式与正文基线对齐；独立公式居中、字号 20</li>
+<li>变量一律斜体（KaTeX 默认），数字正体——不允许纯文本公式出现在页面上</li>
+</ul>
+<h2>5. 功能需求</h2>
+<h3>F1 · 图表美学重做（P0）</h3>
+<ul>
+<li>网格：弱化到背景（见 <code>--grid</code>），网格线间距自适应（手机端不过密）</li>
+<li>曲线：线宽 3.5pt，<code>--fn-main</code>，线条抗锯齿；<strong>不加模糊阴影</strong>（用户明确要求）；拖动时不做发光反馈</li>
+<li>坐标轴：<code>--axis</code> 细线，箭头简洁；刻度数字 11pt <code>--text-3</code>，不与曲线/标注重叠（自动避让或淡化被压住的刻度）</li>
+<li>标注点：实体色实心圆点 + 白色描边 + 外圈柔光（见 §4.1.1 绑定关系），坐标文字用 chip 样式（圆角 8，半透明底），<strong>不得遮挡曲线关键形态</strong></li>
+<li>图内实时公式：图表左上角常驻当前方程（如 <code>y = 2x + 3</code>），参数符号按 §4.1.1 着色，随拖动实时更新（Desmos 式 in-figure 标签，不用图例外置 legend）</li>
+<li>特殊线（对称轴/渐近线）：虚线，<code>--text-3</code> 色，标签 11pt 贴线放置</li>
+<li>k 几何意义矩形：半透明 <code>--fn-main</code> 填充（10% 透明度）+ 虚线边，面积 chip 实时跟随</li>
+</ul>
+<h3>F2 · 页面节奏重构（P0）</h3>
+<p>打破&quot;三白卡片垂直堆&quot;：</p>
+<ul>
+<li><strong>交互探索上浮为 hero 区</strong>：图表卡片是页面视觉中心，纵向占比最大，顶部与大标题之间只隔 12pt</li>
+<li>概念引入收成 hero 下方的紧凑引导条（一句话 + 公式，不再是大卡片）</li>
+<li>引导任务（&quot;试试把 k 拖到 2&quot;）做成图表下方的横向 chip 组，点一下自动把参数动画过渡到目标值（F7 联动）</li>
+<li>例题验证保持折叠式，样式与新视觉统一</li>
+</ul>
+<h3>F3 · 滑杆重做（P1）</h3>
+<ul>
+<li>iOS 原生 UISlider 质感：轨道 4pt 圆角（已填充段 <code>--fn-main</code>，未填充段 <code>--grid</code> 深色）、</li>
+</ul>
+<p>  拇指 28pt 白色 + 柔阴影，拖动时拇指放大 1.15 倍（spring 回弹）</p>
+<ul>
+<li>参数名（k/b/a）用 15pt 加粗斜体（数学变量感），数值 15pt <code>tabular-nums</code> 右对齐</li>
+<li>滑杆行纵向间距 16pt，不再是&quot;设置页面&quot;既视感</li>
+</ul>
+<h3>F4 · 状态条 chip 化（P1）</h3>
+<ul>
+<li>&quot;↗ 上升 · k&gt;0&quot;这类状态提示统一为 chip：圆角 8、语义色 12% 底 + 语义色文字、</li>
+</ul>
+<p>  图标（↗/↘/→）与文字基线对齐</p>
+<ul>
+<li>边界诚实提示（a=0 退化）用 <code>--fn-warn</code> 色 chip，文案不变</li>
+</ul>
+<h3>F5 · 首页重做（P0）</h3>
+<ul>
+<li>顶部 hero：一个<strong>实时动画的函数曲线</strong>（如二次函数顶点漂移的循环动画，Canvas 绘制，</li>
+</ul>
+<p>  60fps，尊重 <code>prefers-reduced-motion</code> 则静止显示首帧）+ 大标题&quot;数形&quot; + 一句话 slogan</p>
+<ul>
+<li>三个知识点入口改为大卡片：每卡配<strong>静态曲线缩略图</strong>（Canvas 快照或 SVG，一次/二次/反比例各一），</li>
+</ul>
+<p>  标题 + 公式（KaTeX 行内）+ &quot;进入 →&quot;</p>
+<ul>
+<li>底部保留 roadmap 指向（&quot;更多系列规划中&quot;），样式弱化</li>
+</ul>
+<h3>F6 · Dark Mode 正式实现（P0）</h3>
+<ul>
+<li>v0 只是&quot;预留&quot;，v1 正式做完：全页面（含 Canvas 网格/曲线/标注/chip）跟随系统切换</li>
+<li>切换入口保留右上角 🌙，切换时用 0.3s 淡入淡出（非线性跳变）</li>
+<li>验收：浅色/深色各截全套页面对比走查（见 AC5）</li>
+</ul>
+<h3>F7 · 动效 polish（P1）</h3>
+<ul>
+<li>参数变化时曲线做 <strong>morph 过渡</strong>（120ms，spring 曲线），而不是硬跳帧——&quot;拖&quot;的跟手感保留，</li>
+</ul>
+<p>  &quot;点 chip 自动设值&quot;时用过渡动画</p>
+<ul>
+<li>页面进入：图表卡片 0.25s 上浮淡入（spring），其他元素依次 30ms stagger</li>
+<li>全部动效遵循 <code>prefers-reduced-motion</code>：开启动效全部关闭，数值直接跳变</li>
+<li><strong>曲线本身不加模糊阴影</strong>（用户明确要求）：质感靠线宽 3pt + 圆角端点，不靠发光</li>
+</ul>
+<h3>F8 · 页面收纳与内容版本号（P0，见 ADR-002、ADR-003）</h3>
+<ul>
+<li>三级导航 v2：首页（4 张分支卡片：函数与分析 / 几何与空间 / 代数与方程 / 概率与统计，</li>
+</ul>
+<p>  整幅 canvas artwork + 大标题压字，App Store Today 式）→ 分支页（学习路径时间线，</p>
+<p>  初中→高中→大学→前沿，节点：已上线实心分支色圆点 / 未上线灰色空心）→ 知识点页；</p>
+<p>  每级面包屑返回（如&quot;‹ 函数与分析&quot;）</p>
+<ul>
+<li>内容版本号 <code>{年级}.{序号}</code>：<code>初二.1</code> 一次函数、<code>初三.1</code> 二次函数、<code>初三.2</code> 反比例函数；</li>
+</ul>
+<p>  知识点页标题旁版本 badge（12px 蓝底 chip），路径节点行标注版本 + 学段徽标（初中/高中/大学）</p>
+<ul>
+<li>未上线知识点显示&quot;规划中&quot;占位，不跳转</li>
+<li>工具版本 vX.Y 不出现在 UI</li>
+</ul>
+<h3>F9 · 响应式布局（P1，手机优先、桌面展开）</h3>
+<p>使用优先级：手机 &gt; 桌面 &gt; Web。手机是第一设计目标，桌面是自然展开，不做第三套设计。</p>
+<ul>
+<li>断点唯一：<code>1024px</code>。<code>&lt;1024px</code> 单列（即本 PRD 前述全部规范）；<code>≥1024px</code> 展开。</li>
+<li>桌面展开规则：</li>
+<li>页面 <code>max-width: 1180px</code>，导航同宽</li>
+<li>首页：分支卡片 2×2 网格，卡片高 200px；hero 高 340px，标题 56px</li>
+<li>函数页：图表 + 控制双栏（约 8:5），控制栏 <code>position: sticky</code>；图表 <code>aspect-ratio: 16/10</code>；概念/例题全宽在下</li>
+<li>分支页：路径时间线限宽 760px</li>
+<li>禁止：桌面端把同一内容做成另一套信息架构；禁止横向滚动条</li>
+</ul>
+<h4>F9b · 桌面函数工作台 workbench（P0，≥1024px）</h4>
+<p>桌面端函数页不是放大版手机页，而是三栏工作台（左 300px｜中自适应｜右 330px，左右栏 sticky）：</p>
+<ul>
+<li>W1 参数控制（左）：语义滑杆 + 每条滑杆下的语义预告行（如 <code>k=3 · 每向右 1 格，向上 3 格</code>）+ 状态 chip + 试试/演示</li>
+<li>W2 图像实验台（中）：图表 + 图内公式 + 关键点点击放大窗（大字读数卡，点空白处关闭）</li>
+<li>W3 参数分解（右）：参数分解表（参数名/当前值/语义三列，随拖动实时更新）+ 探究三步（编号步骤）+ 铁律（红色警示条）</li>
+<li>手机端（&lt;1024px）保持单列，工作台面板按&quot;图表 → 参数控制 → 参数分解 → 概念 → 例题&quot;依次堆叠</li>
+</ul>
+<h4>F9c · 课程目录常驻（P0，≥1024px，仅桌面）</h4>
+<ul>
+<li>桌面端函数页左侧常驻课程目录（264px，sticky）：分支名 + 学习路径列表（已上线实心分支色点/规划中灰色空心点 + 版本号/学段）</li>
+<li>点已上线知识点直接在右侧教学区切换（重播入场动画），无需返回分支页；当前项高亮</li>
+<li>手机端目录隐藏，保留现有面包屑返回</li>
+</ul>
+<h3>F10 · 动态层 motion layer（P0，对标 3Blue1Brown 的电影感 × 可交互）</h3>
+<p>动态为交互服务，不做纯装饰动画。零动画库依赖：rAF + CSS transition + WAAPI。</p>
+<ul>
+<li>M1 三段式入场：进函数页 1100ms 内依次生长——坐标轴（0–330ms）→ 网格（90–420ms）→ 曲线从左向右生长（330–990ms）→ 标注点/图内公式（790–1100ms）；smoothstep 缓动；<code>prefers-reduced-motion</code> 下跳过</li>
+<li>M2 镜头微动：页面切换时 0.985→1 轻微推近 + 淡入，380ms <code>cubic-bezier(.2,.7,.2,1)</code>，替代硬切</li>
+<li>M3 演参数：▶ 演示按钮，第一参数（k/a）从 min→max 自动播放，1×=4.5s，速度 1×/2× 可切；播放中按钮变为&quot;⏸ 停止&quot;并高亮；拖滑杆/点 chip/切页即停</li>
+<li>M4 焦点高亮-变灰：操作某参数时，其他参数的滑杆行、公式符号、归属标注点降至 35% 透明度；松手 700ms 后恢复</li>
+<li>约束：禁止引入 Three.js / D3 / GSAP 等动画库（3D 是化学的解，不是数学函数的解；参数函数可视化与 D3 的数据抽象不对口；现有 rAF + easing 已覆盖需求）</li>
+</ul>
+<h2>6. 验收标准</h2>
+<table><thead><tr><th>编号</th><th>标准</th><th>等级</th></tr></thead><tbody>
+<tr><td>AC1</td><td>三个知识点页 + 首页，浅色/深色各一套截图，yiyi 按 §4 规范逐项走查（色值/字阶/间距/圆角抽查）</td><td><span class="badge P0">P0</span></td></tr>
+<tr><td>AC2</td><td>页面上<strong>零纯文本公式</strong>（全站 KaTeX，代码 grep <code>y =</code> 纯文本公式残留 = 0）</td><td><span class="badge P0">P0</span></td></tr>
+<tr><td>AC3</td><td>数学正确性零退化：L1 数值自检重跑（顶点/交点/面积），边界诚实行为（a=0/k=0）与 v0 一致</td><td><span class="badge P0">P0</span></td></tr>
+<tr><td>AC4</td><td>60fps：拖动曲线无肉眼掉帧（低端机 ≥ 30fps）；包体积增量 ≤ 150KB（含 KaTeX）</td><td><span class="badge P0">P0</span></td></tr>
+<tr><td>AC5</td><td>Dark Mode：系统切换跟随正确，无&quot;半黑半白&quot;（截图对比）</td><td><span class="badge P1">P1</span></td></tr>
+<tr><td>AC6</td><td>动效：spring 曲线、无线性动画；<code>prefers-reduced-motion</code> 开启时全部静止</td><td><span class="badge P1">P1</span></td></tr>
+<tr><td>AC7</td><td><code>npm run build</code> 通过；控制台 0 error；移动端 Safari 触摸正常</td><td><span class="badge P1">P1</span></td></tr>
+<tr><td>AC9</td><td>1024px / 1440px / 390px 三档走查：布局按 F9 展开/收起，无横向滚动，无重叠错位</td><td><span class="badge P1">P1</span></td></tr>
+<tr><td>AC10</td><td>M1–M4 四招走查齐备：入场分段可见、切页有推近、演示可播可停、焦点变灰 35%；无动画库依赖；reduced-motion 下全部跳过</td><td><span class="badge P0">P0</span></td></tr>
+<tr><td>AC11</td><td>桌面端函数页为三栏工作台：参数分解随拖动实时更新、探究三步与铁律完整、关键点点击弹出放大窗；手机端单列堆叠无错位</td><td><span class="badge P0">P0</span></td></tr>
+<tr><td>AC12</td><td>桌面端左侧课程目录常驻：7 节点（3 已上线+4 规划中）渲染正确，点击切换知识点、当前项高亮；手机端目录隐藏</td><td><span class="badge P0">P0</span></td></tr>
+<tr><td>AC13</td><td>A1–A4 走查：时钟秒级跳动、搜索过滤有效、专注模式隐藏目录/侧栏、全屏重绘正常、舞台头公式正确；手机端无残留</td><td><span class="badge P0">P0</span></td></tr>
+<tr><td>AC14</td><td>F9e 走查：三种函数默认读数正确（二次顶点 <code>(2,-1)</code>/对称轴 <code>x=2</code>、反比例 <code>k=2</code>/一三象限）；拖滑杆读数实时更新；手机端读数条位置正确</td><td><span class="badge P0">P0</span></td></tr>
+</tbody></table>
+<h4>F9d · 桌面应用框 application frame（P0，≥1024px，仅桌面）</h4>
+<p>对标&quot;像软件不像网页&quot;：</p>
+<ul>
+<li>A1 顶栏应用化：品牌 +「自由探索」+ 日期 + 实时时钟（秒级）+「本地运行」状态点</li>
+</ul>
+<p>  （工具版本号不进 UI，见 ADR-002）；手机端仅保留品牌</p>
+<ul>
+<li>A2 课程目录模块制：header（N 学习模块 badge + 实验计数）+ 搜索框（输入过滤当前模块节点）+ 一/二/三/四编号模块；当前模块展开显示编号实验（已上线可点/规划中置灰），点其他模块头跳转分支页</li>
+<li>A3 标题区工具按钮：📖 探究指南（平滑滚动到探究三步并高亮脉冲）/ 🎯 专注模式（隐藏目录与右侧栏，实验台独占）/ ⛶ 全屏（实验台全屏，监听尺寸重绘）；桌面端大标题区整体隐藏（身份由目录高亮+舞台头承担），三按钮移入舞台头右侧</li>
+<li>A4 仪器舞台头：实验台顶部标识条「{知识点} · {公式}」+ 右侧操作提示（如&quot;拖动滑杆 →&quot;）</li>
+<li>手机端（&lt;1024px）：应用栏 pills、工具按钮、舞台头全部隐藏，保持现有单列（含标题区）</li>
+<li>三栏等高：目录 / 教学流（实验台→概念引入→例题验证）/ 控制面板顶对齐、等高（stretch）；右侧面板去除&quot;参数控制/参数分解&quot;等无意义小标题，保留探究三步/铁律（教学脚手架命名）</li>
+</ul>
+<h4>F9e · 关键点读数条（P0，对标粒子先生读数放大窗）</h4>
+<p>实验台 Canvas 下方常驻一横条，随参数实时更新（拖动滑杆即变，无需点击）：</p>
+<ul>
+<li>一次函数：与 x 轴交点、与 y 轴交点、斜率</li>
+<li>二次函数：顶点坐标、对称轴、与 y 轴交点</li>
+<li>反比例函数：对称中心、k 值、所在象限</li>
+<li>样式：小字 <code>--text-2</code> + <code>tabular-nums</code>，实体色绑定（见 §4.1.1）；这是&quot;读数放大窗&quot;的常驻版，</li>
+</ul>
+<p>  点击放大窗（F9b W2）保留为&quot;点关键点看大字&quot;的补充交互</p>
+<p>AC8 | 三级导航走查：首页→分支页→知识点页→返回，全程无白屏；版本号标注与 ADR-002 一致（初二.1/初三.1/初三.2）；分支卡片 artwork 四张风格统一 | P0</p>
+<h2>7. 里程碑</h2>
+<ul>
+<li><strong>M1</strong>：§4 视觉规范落地（tokens + KaTeX 接入 + 新滑杆/新 chip 组件），单个页面（一次函数）试点重做</li>
+<li><strong>M2</strong>：三个知识点页全部按 F1–F4、F7 重做</li>
+<li><strong>M3</strong>：F5 首页 + F6 Dark Mode，发布 v0.2（更新 README 截图 + demo GIF）</li>
+</ul>
+<h2>8. 附：给编码 agent 的约束（省 token 专用）</h2>
+<p>1. <strong>数学层零改动</strong>：曲线算法、标注数值计算、边界行为直接复用 v0 代码，只改 presentation。</p>
+<p>   不确定的先问，不要&quot;顺手优化&quot;数学逻辑。</p>
+<p>2. <strong>按 §4 规范一次写对</strong>：不要做 A/B 多方案，不要反复试色——规范就是结论。</p>
+<p>3. <strong>L2 教研前置意见</strong>（yiyi）：</p>
+<ul>
+<li>标注 chip 不得遮挡曲线关键形态（如顶点、分支），位置算法保留避让逻辑</li>
+<li>颜色语义全站一致：上升/正向恒绿，下降/负向恒红，曲线恒蓝——不得为&quot;好看&quot;临时换色</li>
+<li>渐近线/对称轴必须保持虚线样式（数学惯例），不得改成实线</li>
+<li>KaTeX 公式的变量斜体是数学规范，不是装饰，不得改成正体&quot;统一风格&quot;</li>
+</ul>
+<p>4. 每个里程碑结束停一下，等 yiyi 截图走查验收后再进下一个。</p></div></body></html>
