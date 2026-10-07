@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>数形 · v1 视觉原型</title>
+<style>
+/* ============ 数形视觉语言 v1 · design tokens ============ */
+:root{
+  --fn-main:#007AFF; --fn-accent:#34C759; --fn-warn:#FF3B30;
+  --ent-b:#FF9500; --ent-t:#5AC8FA;
+  --text-1:#1C1A16; --text-2:#4A453C; --text-3:#8E8E93;
+  --grid:#E9E3D3; --axis:#8E8E93;
+  --card:#FFFDF8; --bg:#F4F1EA; --sep:#E8E1D1;
+  --radius:16px; --chip-radius:8px;
+  --spring:cubic-bezier(.32,.72,.35,1);
+  --shadow:0 4px 24px rgba(0,0,0,.06);
+}
+html[data-theme="dark"]{
+  --fn-main:#0A84FF; --fn-accent:#30D158; --fn-warn:#FF453A;
+  --ent-b:#FF9F0A; --ent-t:#64D2FF;
+  --text-1:#FFFFFF; --text-2:#EBEBF5; --text-3:#98989F;
+  --grid:#2C2C2E; --axis:#98989F;
+  --card:#1C1C1E; --bg:#000000; --sep:#38383A;
+  --shadow:0 4px 24px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--text-1);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased;
+  transition:background .3s var(--spring), color .3s var(--spring);
+}
+/* ============ 导航（Liquid Glass） ============ */
+.nav{
+  position:sticky; top:0; z-index:50;
+  background:color-mix(in srgb, var(--bg) 72%, transparent);
+  -webkit-backdrop-filter:blur(24px) saturate(1.8); backdrop-filter:blur(24px) saturate(1.8);
+  border-bottom:.5px solid var(--sep);
+  padding:10px 16px calc(10px + env(safe-area-inset-top)*0);
+}
+.nav-row{display:flex;align-items:center;justify-content:space-between;max-width:860px;margin:0 auto}
+.wordmark{font-size:17px;font-weight:800;letter-spacing:.5px}
+.wordmark small{font-weight:600;color:var(--text-3);font-size:11px;letter-spacing:1.5px;margin-left:6px}
+.app-pills{display:none;align-items:center;gap:8px}
+.pill{font-size:12px;font-weight:600;border:1px solid var(--sep);border-radius:8px;
+  padding:5px 10px;color:var(--text-2);background:var(--card);white-space:nowrap}
+.pill.mono{font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,monospace}
+.pill.ok{color:#2da44e;border-color:color-mix(in srgb, #2da44e 45%, transparent)}
+.pill.live{color:var(--fn-main);display:flex;align-items:center;gap:6px}
+.pill.live i{width:7px;height:7px;border-radius:50%;background:var(--fn-main);animation:blink 2s infinite}
+@keyframes blink{50%{opacity:.3}}
+.theme-btn{
+  width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;font-size:16px;
+  background:color-mix(in srgb, var(--text-3) 14%, transparent); color:var(--text-1);
+  transition:transform .25s var(--spring);
+}
+.theme-btn:active{transform:scale(.9)}
+/* ============ 三级导航：年级 → 系列 → 知识点 ============ */
+.backrow{display:flex;align-items:center;gap:10px;margin:2px 0 6px}
+.backbtn{width:34px;height:34px;border-radius:50%;border:none;flex-shrink:0;
+  background:color-mix(in srgb, var(--text-3) 14%, transparent);color:var(--text-1);
+  font-size:20px;cursor:pointer;line-height:1;font-family:inherit;
+  transition:transform .2s var(--spring)}
+.backbtn:active{transform:scale(.88)}
+.crumb{font-size:13px;color:var(--text-3);font-weight:600}
+.ver-badge{display:inline-block;font-size:12px;font-weight:700;color:var(--fn-main);
+  background:color-mix(in srgb, var(--fn-main) 12%, transparent);
+  border-radius:8px;padding:3px 10px;vertical-align:5px;letter-spacing:.5px;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+/* 分支卡片：整幅 artwork + 大标题压字（App Store Today 式） */
+.branch-card{position:relative;height:172px;padding:0;overflow:hidden;cursor:pointer;
+  background:#141416;border-radius:20px;
+  transition:transform .25s var(--spring)}
+#branchCards{display:grid;grid-template-columns:1fr;gap:16px}
+.branch-card::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(130% 100% at 82% 18%, color-mix(in srgb, var(--bc) 16%, transparent), transparent 62%)}
+html[data-theme="dark"] .branch-card{background:#0E0E10}
+.branch-card:active{transform:scale(.97)}
+.branch-card canvas{position:absolute;inset:0;width:100%;height:100%}
+.branch-scrim{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(to top, rgba(0,0,0,.62) 0%, rgba(0,0,0,.12) 55%, transparent 75%)}
+.branch-meta{position:absolute;left:0;right:0;bottom:0;padding:16px 18px;pointer-events:none}
+.branch-en{font-size:10px;font-weight:700;letter-spacing:2.5px;color:rgba(255,255,255,.65);margin-bottom:4px}
+.branch-meta h3{margin:0;font-size:25px;font-weight:800;letter-spacing:-.5px;color:#fff}
+.branch-foot{margin-top:5px;font-size:12px;color:rgba(255,255,255,.7);font-variant-numeric:tabular-nums}
+/* 学习路径时间线 */
+.path{position:relative;margin-top:6px}
+.path::before{content:"";position:absolute;left:10px;top:14px;bottom:14px;width:2px;
+  background:color-mix(in srgb, var(--text-3) 25%, transparent);border-radius:1px}
+.pnode{position:relative;display:flex;gap:16px;margin-bottom:10px}
+.pdot{width:22px;height:22px;border-radius:50%;flex-shrink:0;margin-top:16px;z-index:1;
+  border:2.5px solid color-mix(in srgb, var(--text-3) 45%, transparent);background:var(--card)}
+.pnode.live .pdot{border-color:var(--bc);background:var(--bc);
+  box-shadow:0 0 0 4px color-mix(in srgb, var(--bc) 18%, transparent)}
+.pnode .card{flex:1;margin-bottom:0;padding:14px 18px;display:flex;align-items:center;gap:10px}
+.pnode.live .card{cursor:pointer;transition:transform .2s var(--spring)}
+.pnode.live .card:active{transform:scale(.97)}
+.pname{flex:1;font-size:16px;font-weight:700}
+.pname small{display:block;font-size:12px;font-weight:500;color:var(--text-3);margin-top:2px}
+.lvl{display:inline-block;font-size:11px;font-weight:700;color:var(--text-2);
+  background:color-mix(in srgb, var(--text-3) 14%, transparent);
+  border-radius:6px;padding:2px 8px;white-space:nowrap}
+.soon{font-size:12px;color:var(--text-3);white-space:nowrap}
+/* ============ 页面 ============ */
+.page{max-width:860px;margin:0 auto;padding:20px 16px 90px}
+.view{display:none}
+.view.active{display:block;animation:fadeUp .35s var(--spring)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.page-title{font-size:34px;font-weight:800;letter-spacing:-.5px;margin:6px 0 2px}
+.page-sub{font-size:15px;color:var(--text-3);margin:0 0 16px}
+.section-label{font-size:13px;font-weight:700;color:var(--text-3);letter-spacing:1px;margin:26px 4px 10px}
+/* ============ 卡片 ============ */
+.card{
+  background:var(--card);border-radius:var(--radius);padding:20px;margin-bottom:12px;
+  box-shadow:var(--shadow);transition:background .3s var(--spring);
+}
+.card-title{font-size:20px;font-weight:700;margin:0 0 4px;letter-spacing:-.3px}
+/* ============ 图表 hero ============ */
+.chart-card{padding:14px}
+.chart-wrap{position:relative;width:100%;aspect-ratio:7/6}
+canvas.chart{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.overlay{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.ov-chip{
+  position:absolute;transform:translate(-50%,-135%);white-space:nowrap;
+  font-size:12px;font-weight:600;color:var(--text-1);font-variant-numeric:tabular-nums;
+  background:color-mix(in srgb, var(--card) 82%, transparent);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border:.5px solid var(--sep);border-radius:var(--chip-radius);padding:4px 10px;
+  box-shadow:0 2px 10px rgba(0,0,0,.08);
+}
+.ov-chip.warn{color:var(--fn-warn)}
+.ov-tag{
+  position:absolute;font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums;
+  white-space:nowrap;transform:translate(-50%,0);
+}
+/* ============ 滑杆（iOS 质感） ============ */
+.slider-row{display:flex;align-items:center;gap:12px;padding:9px 0}
+.slider-name{font-size:15px;font-weight:700;font-style:italic;width:20px;color:var(--text-1)}
+.slider{position:relative;flex:1;height:28px;cursor:pointer;touch-action:none}
+.slider-track{position:absolute;left:0;right:0;top:12px;height:4px;border-radius:2px;
+  background:color-mix(in srgb, var(--text-3) 22%, transparent)}
+.slider-fill{position:absolute;left:0;top:12px;height:4px;border-radius:2px;background:var(--fn-main);width:50%}
+.slider-thumb{
+  position:absolute;top:14px;width:28px;height:28px;border-radius:50%;background:#fff;
+  transform:translate(-50%,-50%) scale(1);
+  box-shadow:0 2px 8px rgba(0,0,0,.22),0 .5px 2px rgba(0,0,0,.12);
+  transition:transform .3s var(--spring);pointer-events:none;
+}
+html[data-theme="dark"] .slider-thumb{background:#E9E9EE}
+.slider.dragging .slider-thumb{transform:translate(-50%,-50%) scale(1.18)}
+.slider-val{font-size:15px;font-weight:600;color:var(--fn-main);min-width:44px;text-align:right;
+  font-variant-numeric:tabular-nums}
+/* ============ 状态 chip ============ */
+.status-row{display:flex;margin-top:6px}
+.status-chip{
+  display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;
+  border-radius:var(--chip-radius);padding:7px 14px;
+  transition:all .3s var(--spring);
+}
+.status-chip .arrow{font-size:14px}
+.status-chip.green{color:var(--fn-accent);background:color-mix(in srgb, var(--fn-accent) 13%, transparent)}
+.status-chip.red{color:var(--fn-warn);background:color-mix(in srgb, var(--fn-warn) 13%, transparent)}
+.status-chip.blue{color:var(--fn-main);background:color-mix(in srgb, var(--fn-main) 13%, transparent)}
+/* ============ 引导 chips ============ */
+.guide-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
+.guide-label{font-size:13px;color:var(--text-3);font-weight:600}
+.guide-chip{
+  border:.5px solid var(--sep);background:var(--card);color:var(--fn-main);
+  font-size:13px;font-weight:600;border-radius:20px;padding:7px 14px;cursor:pointer;font-family:inherit;
+  transition:transform .2s var(--spring), background .2s;
+}
+.guide-chip:active{transform:scale(.94)}
+/* ============ 概念条 ============ */
+.concept{font-size:16px;color:var(--text-1);margin:0 0 10px}
+.concept .tex{display:block;margin-top:10px;text-align:center;font-size:19px}
+/* ============ 例题 ============ */
+details.example{border-top:.5px solid var(--sep);margin-top:6px}
+details.example summary{
+  list-style:none;cursor:pointer;font-size:16px;font-weight:600;padding:14px 0 6px;
+  display:flex;justify-content:space-between;align-items:center;color:var(--text-1);
+}
+details.example summary::-webkit-details-marker{display:none}
+details.example summary .chev{color:var(--text-3);transition:transform .3s var(--spring);font-size:13px}
+details.example[open] summary .chev{transform:rotate(180deg)}
+.example-body{padding:4px 0 10px;font-size:15px;color:var(--text-2)}
+.answer{margin-top:10px;background:color-mix(in srgb, var(--fn-accent) 10%, transparent);
+  border-radius:10px;padding:10px 14px;font-size:14px;color:var(--text-1)}
+/* ============ 首页 ============ */
+.home-hero{padding:0;overflow:hidden;position:relative}
+.home-hero canvas{position:absolute;inset:0;width:100%;height:100%}
+.hero-text{position:relative;padding:26px 22px 20px;pointer-events:none}
+.hero-text h1{font-size:46px;font-weight:800;letter-spacing:-1.2px;margin:0}
+.hero-text p{margin:6px 0 0;font-size:15px;color:var(--text-2);max-width:70%}
+.fn-card{display:flex;align-items:center;gap:14px;cursor:pointer;
+  transition:transform .25s var(--spring)}
+.fn-card:active{transform:scale(.97)}
+.fn-thumb{width:72px;height:72px;border-radius:12px;flex-shrink:0;
+  background:color-mix(in srgb, var(--fn-main) 7%, transparent)}
+.fn-info{flex:1}
+.fn-info h3{margin:0;font-size:17px;font-weight:700}
+.fn-info .tex{font-size:14px;color:var(--text-3)}
+.fn-chev{color:var(--text-3);font-size:18px}
+.foot{margin-top:34px;text-align:center;font-size:13px;color:var(--text-3)}
+/* ============ 数学排版（零依赖手写，变量斜体） ============ */
+.tex i{font-style:italic;font-family:Georgia,"Times New Roman",serif;padding-right:.06em}
+.tex{margin:0 .14em}
+.ek{color:var(--fn-main)} .eb{color:var(--ent-b)} .et{color:var(--ent-t)} .ev{color:var(--fn-warn)}
+.chart-eq{position:absolute;top:10px;left:12px;z-index:5;font-size:13px;color:var(--text-2);
+  background:color-mix(in srgb, var(--card) 92%, transparent);
+  border:.5px solid var(--sep);border-radius:8px;padding:5px 11px;pointer-events:none;
+  font-variant-numeric:tabular-nums;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.chart-eq i{font-style:italic;font-family:Georgia,"Times New Roman",serif}
+.slider-bub{position:absolute;bottom:32px;transform:translateX(-50%) scale(.8);opacity:0;
+  background:var(--text-1);color:var(--bg);font-size:12px;font-weight:700;
+  padding:4px 10px;border-radius:8px;pointer-events:none;white-space:nowrap;
+  transition:opacity .18s var(--spring), transform .18s var(--spring);font-variant-numeric:tabular-nums}
+.slider.dragging .slider-bub{opacity:1;transform:translateX(-50%) scale(1)}
+.tex sup{font-size:.68em}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .25em}
+.frac .num{border-bottom:1.5px solid currentColor;padding:0 .35em .1em;line-height:1.3}
+.frac .den{padding:.1em .35em 0;line-height:1.3}
+.hero-scrim{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(to bottom, color-mix(in srgb, var(--card) 88%, transparent) 0%, transparent 45%);}
+/* 关键点读数条：base 隐藏，桌面显示 */
+.key-strip{display:none}
+/* ============ 课程目录 catalog（桌面常驻）：base 必须在 media 之前 ============ */
+.catalog{display:none}
+.wb-side{display:flex;flex-direction:column;gap:12px}
+.wb-side .card{margin-bottom:0}
+.stage-head{display:none}
+/* ============ 桌面端展开（≥1024px）：手机优先，桌面自然展开 ============ */
+.fn-layout{display:flex;flex-direction:column}
+.fn-center{display:contents}
+.chart-card{order:1}
+.wb-side{order:2}
+.concept-card{order:3}
+.example-card{order:4}
+@media (min-width:1024px){
+  .page{max-width:1180px;padding:28px 32px 110px}
+  .nav-row{max-width:1180px;padding:0 16px}
+  #branchCards{grid-template-columns:1fr 1fr;gap:20px}
+  .branch-card{height:200px}
+  .home-hero{height:340px !important}
+  .hero-text h1{font-size:56px}
+  .fn-shell{display:grid;grid-template-columns:264px minmax(0,1fr);gap:20px}
+  .fn-shell .card,.catalog{border:1px solid var(--sep);box-shadow:0 2px 10px rgba(60,50,30,.05)}
+  .catalog{display:block;position:sticky;top:84px;background:var(--card);border-radius:var(--radius);
+    padding:18px 12px;max-height:calc(100vh - 110px);overflow:auto}
+  .cat-head{font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px;padding:0 6px}
+  .cat-badge{font-size:10px;font-weight:700;color:var(--fn-main);background:color-mix(in srgb, var(--fn-main) 12%, transparent);
+    border-radius:6px;padding:2px 7px}
+  .cat-desc{font-size:11px;color:var(--text-3);padding:4px 6px 0}
+  .cat-search{padding:10px 6px 2px}
+  .cat-search input{width:100%;border:1px solid var(--sep);border-radius:10px;padding:8px 12px;font-size:13px;
+    background:var(--bg);color:var(--text-1);font-family:inherit;outline:none;box-sizing:border-box}
+  .cat-search input:focus{border-color:var(--fn-main)}
+  .cat-mod{margin-top:6px}
+  .cat-mod-h{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:12px;cursor:pointer;
+    font-size:14px;font-weight:700}
+  .cat-mod-h:hover{background:color-mix(in srgb, var(--text-3) 10%, transparent)}
+  .cat-num{font-size:11px;color:var(--text-3);border:1px solid var(--sep);border-radius:6px;width:20px;height:20px;
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-weight:700}
+  .cat-mod.open .cat-num{background:var(--bc);border-color:transparent;color:#fff}
+  .cat-chev{margin-left:auto;color:var(--text-3);transition:transform .2s}
+  .cat-mod.open .cat-chev{transform:rotate(90deg)}
+  .cat-nodes{padding:2px 0 4px}
+  .cat-node{display:flex;align-items:center;gap:10px;padding:8px 10px 8px 14px;border-radius:12px}
+  .cat-node.live{cursor:pointer}
+  .cat-node.live:hover{background:color-mix(in srgb, var(--bc) 8%, transparent)}
+  .cat-node.active{background:color-mix(in srgb, var(--bc) 13%, transparent)}
+  .cn-num{font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums;width:16px;flex:0 0 auto;text-align:center}
+  .cat-node.active .cn-num{color:var(--bc);font-weight:800}
+  .cdot{width:8px;height:8px;border-radius:50%;background:var(--bc);flex:0 0 auto}
+  .cname{font-size:13.5px;font-weight:600;display:flex;flex-direction:column;gap:1px}
+  .cname small{font-size:11px;color:var(--text-3);font-weight:400}
+  .cat-empty{font-size:13px;color:var(--text-3);padding:12px 10px}
+  .fn-layout{display:flex;flex-direction:row;gap:16px;align-items:stretch}
+  .fn-center{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:16px}
+  .fn-center .card{margin-bottom:0}
+  .wb-side{order:0;flex:0 0 320px;display:block;background:var(--card);border:1px solid var(--sep);
+    border-radius:var(--radius);box-shadow:0 2px 10px rgba(60,50,30,.05);padding:20px}
+  .wb-side .card{background:none;border:none;box-shadow:none;padding:0;margin-bottom:0;border-radius:0}
+  .wb-side .wb-readout{border-top:1px solid var(--sep);margin-top:14px;padding-top:16px}
+  .chart-wrap{aspect-ratio:16/10}
+  .chart-card .chart-wrap{aspect-ratio:16/12}
+  .path{max-width:760px}
+  .page-title{font-size:40px}
+  .app-pills{display:flex}
+  .fn-topbar{display:none}
+  .stage-tools{display:flex;gap:8px;flex:0 0 auto}
+  .tool-btn{border:1px solid var(--sep);background:var(--card);color:var(--text-1);font-size:12px;font-weight:600;
+    border-radius:9px;padding:6px 11px;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .tool-btn:hover{border-color:var(--fn-main);color:var(--fn-main)}
+  .tool-btn.on{background:var(--fn-main);border-color:transparent;color:#fff}
+  .stage-head{display:flex;align-items:center;justify-content:space-between;
+    font-size:13px;font-weight:700;padding:2px 4px 10px;color:var(--text-1)}
+  .stage-head .stage-hint{font-size:12px;color:var(--text-3);font-weight:500}
+  .key-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+  .key-cell{background:var(--bg);border:1px solid var(--sep);border-radius:12px;padding:10px 14px}
+  .key-cell .kl{font-size:11px;color:var(--text-3);margin-bottom:2px}
+  .key-cell .kv{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+  body.focus-mode .catalog,body.focus-mode .wb-side{display:none !important}
+  body.focus-mode .fn-shell{grid-template-columns:minmax(0,1fr)}
+
+  @keyframes stepPulse{0%,100%{box-shadow:none}50%{box-shadow:0 0 0 3px color-mix(in srgb, var(--fn-main) 50%, transparent)}}
+  .pulse{animation:stepPulse 1.2s ease 2;border-radius:12px}
+}
+/* ============ 函数工作台 workbench ============ */
+.wb-sec-t{font-size:11px;font-weight:700;color:var(--text-3);letter-spacing:2px;margin:0 0 8px}
+.wb-readout .wb-sec-t{margin-top:18px}
+.wb-readout .wb-sec-t:first-child{margin-top:0}
+.sem-line{font-size:12px;color:var(--text-2);margin:-4px 0 12px;min-height:16px;line-height:1.5}
+.sem-line b{font-weight:700}
+.decomp-row{display:flex;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px solid var(--sep)}
+.decomp-row:last-child{border-bottom:none}
+.decomp-k{font-size:13px;font-weight:700;flex:0 0 46px}
+.decomp-v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;flex:0 0 auto}
+.decomp-d{font-size:12px;color:var(--text-2);margin-left:auto;text-align:right;line-height:1.5}
+.wb-steps{margin:0;padding-left:20px;font-size:13px;color:var(--text-1);display:grid;gap:9px;line-height:1.6}
+.wb-iron{font-size:13px;line-height:1.6;background:color-mix(in srgb, var(--fn-warn) 9%, transparent);
+  border:1px solid color-mix(in srgb, var(--fn-warn) 32%, transparent);border-radius:12px;padding:10px 12px}
+.wb-iron b{color:var(--fn-warn)}
+.zoom-card{position:absolute;top:10px;right:10px;display:none;background:var(--card);
+  border:1px solid var(--sep);border-radius:14px;padding:10px 14px;box-shadow:0 8px 24px rgba(0,0,0,.14);z-index:5;min-width:150px}
+.zoom-card.on{display:block;animation:zcpop .25s var(--spring)}
+@keyframes zcpop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.zc-t{font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:1px}
+.zc-v{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;margin:2px 0}
+.zc-d{font-size:12px;color:var(--text-2)}
+.zoom-hint{font-size:11px;color:var(--text-3);text-align:center;padding:8px 0 2px}
+/* ============ 动态层 motion layer ============ */
+.slider-row{transition:opacity .25s}
+[data-psym]{transition:opacity .25s}
+#view-fn.focus-k .slider-row:not([data-p="k"]),#view-fn.focus-b .slider-row:not([data-p="b"]),
+#view-fn.focus-a .slider-row:not([data-p="a"]),#view-fn.focus-c .slider-row:not([data-p="c"]){opacity:.35}
+#view-fn.focus-k [data-psym]:not([data-psym="k"]),#view-fn.focus-b [data-psym]:not([data-psym="b"]),
+#view-fn.focus-a [data-psym]:not([data-psym="a"]),#view-fn.focus-c [data-psym]:not([data-psym="c"]){opacity:.35}
+#playBtn.playing{background:var(--fn-main);color:#fff;border-color:transparent}
+/* ============ 无障碍 ============ */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-row">
+    <div class="wordmark">数形<small>数学体系</small></div>
+    <div class="app-pills">
+      <span class="pill">自由探索</span>
+      <span class="pill mono" id="appDate"></span>
+      <span class="pill mono ok" id="appClock"></span>
+      <span class="pill live"><i></i>本地运行</span>
+    </div>
+    <button class="theme-btn" id="themeBtn" aria-label="切换深色模式">🌙</button>
+  </div>
+</nav>
+<!-- ================= 首页 ================= -->
+<div class="page"><div class="view active" id="view-home">
+  <div class="card home-hero" style="height:300px">
+    <canvas id="heroCanvas"></canvas>
+    <div class="hero-scrim"></div>
+    <div class="hero-text">
+      <h1>数形</h1>
+      <p>拖参数，看图像 —— 30 秒看懂 k / b / a 是干嘛的</p>
+    </div>
+  </div>
+  <div class="section-label">数学分支 · 从初中到前沿</div>
+  <div id="branchCards"></div>
+  <div class="foot">数形 v1 视觉原型 · 高中 / 大学系列规划中</div>
+</div>
+
+<!-- ================= 分支页 ================= -->
+<div class="view" id="view-branch">
+  <div class="backrow"><button class="backbtn" id="branchBack">‹</button><span class="crumb">数学体系</span></div>
+  <h2 class="page-title" id="branchTitle"></h2>
+  <p class="page-sub" id="branchSub"></p>
+  <div class="section-label">学习路径 · 从初中到前沿</div>
+  <div class="path" id="branchPath"></div>
+</div>
+
+<!-- ================= 函数页 ================= -->
+<div class="view" id="view-fn">
+ <div class="fn-shell">
+  <aside class="catalog" id="catalog"></aside>
+  <div class="fn-main">
+  <div class="fn-topbar">
+   <div class="fn-titles">
+  <div class="backrow"><button class="backbtn" id="fnBack">‹</button><span class="crumb" id="fnCrumb"></span></div>
+  <h2 class="page-title"><span id="fnTitle"></span> <span class="ver-badge" id="fnVer"></span></h2>
+  <p class="page-sub" id="fnSub"></p>
+   </div>
+  </div>
+  <div class="fn-layout">
+  <div class="fn-center">
+  <div class="card chart-card">
+    <div class="stage-head"><span id="stageTitle"></span><span class="stage-tools">
+      <button class="tool-btn" id="guideBtn">📖 探究指南</button>
+      <button class="tool-btn" id="focusModeBtn">🎯 专注模式</button>
+      <button class="tool-btn" id="fsBtn">⛶ 全屏</button>
+    </span></div>
+    <div class="chart-wrap">
+      <canvas class="chart" id="mainChart"></canvas>
+      <div class="chart-eq" id="chartEq"></div>
+      <div class="overlay" id="overlay"></div>
+      <div class="zoom-card" id="zoomCard"><div class="zc-t"></div><div class="zc-v"></div><div class="zc-d"></div></div>
+    </div>
+    <div class="key-strip" id="keyStrip"></div>
+    <div class="zoom-hint">点图中的关键点可放大读数</div>
+  </div>
+  <div class="card concept-card">
+    <div class="card-title">概念引入</div>
+    <p class="concept"><span id="conceptText"></span><span class="tex" data-tex="" id="conceptTex"></span></p>
+  </div>
+  <div class="card example-card">
+    <div class="card-title">例题验证</div>
+    <details class="example">
+      <summary><span id="exQ"></span><span class="chev">▼</span></summary>
+      <div class="example-body"><span id="exBody"></span><div class="answer" id="exA"></div></div>
+    </details>
+  </div>
+</div>
+  <div class="wb-side">
+  <div class="card wb-params">
+    <div id="sliders"></div>
+    <div class="status-row"><div class="status-chip blue" id="statusChip"><span class="arrow"></span><span class="txt"></span></div></div>
+    <div class="guide-row"><span class="guide-label">试试</span><button class="guide-chip" id="playBtn">▶ 演示</button><button class="guide-chip" id="speedBtn" title="播放速度">1×</button><span id="guideChips" style="display:contents"></span></div>
+  </div>
+  <div class="card wb-readout">
+    <div id="decompList"></div>
+    <div class="wb-sec-t">探究三步</div>
+    <ol class="wb-steps" id="stepsList"></ol>
+    <div class="wb-sec-t">铁律</div>
+    <div class="wb-iron" id="ironRule"></div>
+  </div>
+  </div>
+  </div>
+ </div>
+</div>
+<script>
+/* ================= 工具 ================= */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const fmt = n => { const r = Math.round(n*100)/100; return Object.is(r,-0)?"0":String(r); };
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+/* 零依赖数学排版：变量斜体 + 分数线，覆盖本原型全部公式 */
+const FORMULAS = {
+  linear: '<i>y</i> = <span class="ek"><i>k</i></span><i>x</i> + <span class="eb"><i>b</i></span>',
+  quadratic: '<i>y</i> = <span class="ek"><i>a</i></span><i>x</i><sup>2</sup> + <span class="et"><i>b</i></span><i>x</i> + <span class="eb"><i>c</i></span>',
+  inverse: '<i>y</i> = <span class="frac"><span class="num"><span class="ek"><i>k</i></span></span><span class="den"><i>x</i></span></span> <span style="font-size:.85em">(<i>x</i> ≠ 0)</span>',
+};
+function tex(el, key){ el.innerHTML = FORMULAS[key] || key; }
+
+/* ================= 主题 ================= */
+const themeBtn = $("#themeBtn");
+function setTheme(t){
+  document.documentElement.dataset.theme = t;
+  themeBtn.textContent = t === "dark" ? "☀️" : "🌙";
+  try{ localStorage.setItem("sx-theme", t); }catch(e){}
+  draw(); // 颜色从 CSS 变量实时读取，重绘即可
+}
+let savedTheme = null;
+try{ savedTheme = localStorage.getItem("sx-theme"); }catch(e){}
+setTheme(savedTheme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+themeBtn.onclick = () => setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+$("#playBtn").onclick = togglePlay;
+$("#guideBtn").onclick = () => {
+  const el = $("#stepsList");
+  el.scrollIntoView({behavior: reducedMotion ? "auto" : "smooth", block: "center"});
+  el.classList.remove("pulse"); void el.offsetWidth; el.classList.add("pulse");
+};
+$("#focusModeBtn").onclick = () => {
+  const on = document.body.classList.toggle("focus-mode");
+  $("#focusModeBtn").classList.toggle("on", on);
+  chartResize(); draw();
+};
+$("#fsBtn").onclick = () => {
+  const card = document.querySelector(".chart-card");
+  try{
+    if(document.fullscreenElement) document.exitFullscreen();
+    else if(card.requestFullscreen) card.requestFullscreen();
+  }catch(e){}
+};
+document.addEventListener("fullscreenchange", () => { chartResize(); draw(); });
+function tickClock(){
+  const d = new Date(), p2 = n => String(n).padStart(2, "0");
+  const de = $("#appDate"), ce = $("#appClock");
+  if(de) de.textContent = `${d.getFullYear()}.${p2(d.getMonth()+1)}.${p2(d.getDate())}`;
+  if(ce) ce.textContent = `${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
+}
+tickClock(); setInterval(tickClock, 1000);
+$("#speedBtn").onclick = () => {
+  playSpeed = playSpeed === 1 ? 2 : 1;
+  $("#speedBtn").textContent = playSpeed + "×";
+  if(play){ stopPlay(); togglePlay(); } // 播放中切换速度：重播
+};
+function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+/* ================= 函数配置 ================= */
+const FN = {
+  linear: {
+    title:"一次函数", sub:"拖参数看直线变化", formula:"linear", ver:"初二.1", branchId:"func",
+    concept:'一次函数的图像是直线：<span class="ek"><i>k</i></span> 管倾斜方向和程度，<span class="eb"><i>b</i></span> 管上下平移。',
+    world:{xMin:-6,xMax:6,yMin:-6,yMax:6},
+    params:[
+      {key:"k", label:"k", min:-3, max:3, step:0.05, value:1, color:"var(--fn-main)"},
+      {key:"b", label:"b", min:-5, max:5, step:0.1,  value:0, color:"var(--ent-b)"},
+    ],
+    guides:[["k → 2",{k:2}],["k → −2",{k:-2}],["k → 0",{k:0}],["b → 3",{b:3}]],
+    exQ:'已知一次函数 <span class="tex"><i>y</i> = 2<i>x</i> − 1</span>，当 <span class="tex"><i>x</i> = 3</span> 时，<span class="tex"><i>y</i></span> = ?',
+    exBody:'把 <span class="tex"><i>x</i> = 3</span> 代入：<span class="tex"><i>y</i> = 2×3 − 1</span>。',
+    exA:'答案：<span class="tex"><i>y</i> = 5</span>', 
+  },
+  quadratic: {
+    title:"二次函数", sub:"拖参数看开口、顶点、对称轴", formula:"quadratic", ver:"初三.1", branchId:"func",
+    concept:'二次函数图像是抛物线：<span class="ek"><i>a</i></span> 管开口方向和宽窄，<span class="ev">顶点</span>是最值点。',
+    world:{xMin:-6,xMax:6,yMin:-6,yMax:6},
+    params:[
+      {key:"a", label:"a", min:-3, max:3, step:0.1, value:1, color:"var(--fn-main)"},
+      {key:"b", label:"b", min:-6, max:6, step:0.2, value:-4, color:"var(--ent-t)"},
+      {key:"c", label:"c", min:-6, max:6, step:0.5, value:3, color:"var(--ent-b)"},
+    ],
+    guides:[["a → −1",{a:-1}],["a → 0，看退化",{a:0}],["y = x²−4x+3",{a:1,b:-4,c:3}]],
+    exQ:'抛物线 <span class="tex"><i>y</i> = <i>x</i><sup>2</sup> − 4<i>x</i> + 3</span> 的顶点坐标是？',
+    exBody:'顶点横坐标 <span class="tex"><i>x</i> = −<i>b</i>/2<i>a</i> = 2</span>，代入得 <span class="tex"><i>y</i> = −1</span>。',
+    exA:'答案：<span class="tex">(2, −1)</span>', 
+  },
+  inverse: {
+    title:"反比例函数", sub:"拖 k 看分支跳跃，拖点看矩形面积", formula:"inverse", ver:"初三.2", branchId:"func",
+    concept:'反比例函数图像是双曲线：<span class="ek"><i>k</i></span> 决定分支位置，|<span class="ek"><i>k</i></span>| 决定矩形面积。',
+    world:{xMin:-6,xMax:6,yMin:-6,yMax:6},
+    params:[ {key:"k", label:"k", min:-6, max:6, step:0.5, value:2, color:"var(--fn-main)"} ],
+    guides:[["k → 6",{k:6}],["k → −4",{k:-4}]],
+    exQ:'若点 <span class="tex">(2, 3)</span> 在反比例函数图像上，<span class="tex"><i>k</i></span> = ?',
+    exBody:'<span class="tex"><i>k</i> = <i>xy</i> = 2×3</span>。',
+    exA:'答案：<span class="tex"><i>k</i> = 6</span>', 
+  },
+};
+let cur = "linear";
+const state = { linear:{k:1,b:0}, quadratic:{a:1,b:-4,c:3}, inverse:{k:2, px:2} };
+
+/* ================= 数学分支（三级收纳 v2：分支 → 路径 → 知识点） ================= */
+const BRANCHES = [
+  { id:"func", name:"函数与分析", en:"FUNCTIONS \u0026 ANALYSIS", color:"#007AFF",
+    desc:"描述变化的语言：从一次函数出发，一路走到微积分。",
+    art:"func", path:[
+      {name:"一次函数", level:"初中", ver:"初二.1", fn:"linear"},
+      {name:"二次函数", level:"初中", ver:"初三.1", fn:"quadratic"},
+      {name:"反比例函数", level:"初中", ver:"初三.2", fn:"inverse"},
+      {name:"指数函数", level:"高中"},
+      {name:"对数函数", level:"高中"},
+      {name:"三角函数", level:"高中"},
+      {name:"导数与微分", level:"大学"},
+    ]},
+  { id:"geo", name:"几何与空间", en:"GEOMETRY \u0026 SPACE", color:"#FF9500",
+    desc:"形状与位置的学问：从三角形画到微分几何。",
+    art:"geo", path:[
+      {name:"三角形", level:"初中"},
+      {name:"全等三角形", level:"初中"},
+      {name:"圆", level:"初中"},
+      {name:"立体几何", level:"高中"},
+      {name:"解析几何", level:"高中"},
+      {name:"微分几何", level:"大学+"},
+    ]},
+  { id:"alg", name:"代数与方程", en:"ALGEBRA", color:"#34C759",
+    desc:"符号与结构的艺术：从有理数通向抽象代数。",
+    art:"alg", path:[
+      {name:"有理数", level:"初中"},
+      {name:"整式", level:"初中"},
+      {name:"一元一次方程", level:"初中"},
+      {name:"分式", level:"初中"},
+      {name:"线性代数", level:"大学"},
+      {name:"抽象代数", level:"大学+"},
+    ]},
+  { id:"prob", name:"概率与统计", en:"PROBABILITY \u0026 STATISTICS", color:"#FF3B30",
+    desc:"不确定性的数学：从掷硬币讲到数理统计。",
+    art:"prob", path:[
+      {name:"数据的收集与整理", level:"初中"},
+      {name:"概率初步", level:"初中"},
+      {name:"随机变量", level:"高中"},
+      {name:"数理统计", level:"大学"},
+    ]},
+];
+const branchOf = id => BRANCHES.find(b => b.id === id);
+const liveCountB = b => b.path.filter(n => n.fn).length;
+
+/* 分支 artwork：固定 350x172 @2x 绘制，CSS 拉伸适配 —— 不依赖布局时机，任何设备都成功 */
+function paintArt(cv, type, color){
+  const W = 350, H = 172, S = 2;
+  cv.width = W * S; cv.height = H * S;
+  const c = cv.getContext("2d");
+  if(!c) return;
+  c.setTransform(S, 0, 0, S, 0, 0);
+  const mid = H * 0.42;
+  c.lineCap = c.lineJoin = "round";
+  const faint = (fn, w=1.2, alpha=.35) => {
+    c.strokeStyle = color; c.globalAlpha = alpha; c.lineWidth = w;
+    c.beginPath(); fn(); c.stroke(); c.globalAlpha = 1;
+  };
+  if(type === "func"){
+    faint(() => { for(let i=0;i<=90;i++){ const x=i/90*W, y=mid+Math.sin(x*0.028)*H*0.22; i?c.lineTo(x,y):c.moveTo(x,y); } }, 1.2, .4);
+    faint(() => { for(let i=0;i<=90;i++){ const x=i/90*W, y=mid+52-Math.pow((x-W*0.68)/(W*0.30),2)*H*0.42; i?c.lineTo(x,y):c.moveTo(x,y); } }, 2.4, .95);
+    faint(() => { c.moveTo(0,mid); c.lineTo(W,mid); }, 1, .25);
+  } else if(type === "geo"){
+    const cx = W*0.72, cy = H*0.46, R = H*0.34;
+    faint(() => c.arc(cx, cy, R, 0, 7), 1.4, .5);
+    faint(() => { const a1=-Math.PI/2, a2=Math.PI/6, a3=Math.PI*5/6;
+      c.moveTo(cx+R*Math.cos(a1), cy+R*Math.sin(a1));
+      c.lineTo(cx+R*Math.cos(a2), cy+R*Math.sin(a2));
+      c.lineTo(cx+R*Math.cos(a3), cy+R*Math.sin(a3)); c.closePath(); }, 2.2, .9);
+    faint(() => { c.moveTo(cx,cy); c.lineTo(cx+R,cy); c.setLineDash([5,4]); }, 1.1, .45);
+    c.setLineDash([]);
+    faint(() => c.arc(W*0.16, H*0.72, H*0.13, 0, 7), 1.2, .35);
+  } else if(type === "alg"){
+    c.fillStyle = color;
+    for(let gx=0; gx<16; gx++) for(let gy=0; gy<8; gy++){
+      c.globalAlpha = ((gx+gy)%3===0) ? .5 : .16;
+      c.beginPath(); c.arc(W*0.55+gx*W*0.028, H*0.12+gy*H*0.10, 1.6, 0, 7); c.fill();
+    }
+    c.globalAlpha = 1;
+    faint(() => { c.moveTo(W*0.55,H*0.95); c.lineTo(W*0.98,H*0.10); }, 2.4, .9);
+    faint(() => { c.moveTo(W*0.08,H*0.30); c.lineTo(W*0.30,H*0.30); c.lineTo(W*0.30,H*0.52); }, 1.3, .5);
+  } else if(type === "prob"){
+    faint(() => { for(let i=0;i<=90;i++){ const x=i/90*W, t=(x-W*0.6)/(W*0.22);
+      const y=H*0.78-Math.exp(-t*t)*H*0.5; i?c.lineTo(x,y):c.moveTo(x,y); } }, 2.4, .9);
+    c.fillStyle = color;
+    let seed = 7;
+    const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+    for(let i=0;i<46;i++){
+      c.globalAlpha = .18 + rnd()*.3;
+      c.beginPath(); c.arc(rnd()*W, H*0.55+rnd()*H*0.4, 1.4+rnd()*1.6, 0, 7); c.fill();
+    }
+    c.globalAlpha = 1;
+  }
+}
+/* ================= 导航 ================= */
+let navBranch = "func";
+function showView(id){
+  ["view-home","view-branch","view-fn"].forEach(v => $("#"+v).classList.toggle("active", v === id));
+  if(id === "view-home") startHero(); else stopHero();
+  window.scrollTo({top:0});
+  stopPlay(); clearFocus();
+  if(!reducedMotion){ // 镜头微动：0.985→1 推近 + 淡入，替代硬切
+    $("#"+id).animate(
+      [{opacity:0, transform:"scale(.985)"},{opacity:1, transform:"scale(1)"}],
+      {duration:380, easing:"cubic-bezier(.2,.7,.2,1)"});
+  }
+}
+function showHome(){ buildBranches(); showView("view-home"); }
+function showBranch(id){ navBranch = id; buildBranchPage(id); showView("view-branch"); }
+function showFn(fnKey){
+  cur = fnKey; navBranch = FN[fnKey].branchId;
+  showView("view-fn"); // 先显示再构建：canvas 需要可见尺寸
+  buildFnPage();
+}
+
+/* ================= 首页：分支卡片 ================= */
+function buildBranches(){
+  const wrap = $("#branchCards"); wrap.innerHTML = "";
+  BRANCHES.forEach(b => {
+    const n = liveCountB(b);
+    const card = document.createElement("div");
+    card.className = "branch-card"; card.style.setProperty("--bc", b.color); card.dataset.bid = b.id;
+    card.innerHTML = `<canvas></canvas><div class="branch-scrim"></div>
+      <div class="branch-meta"><div class="branch-en">${b.en}</div><h3>${b.name}</h3>
+      <div class="branch-foot">${n > 0 ? n + " 个知识点已上线" : "内容规划中"} · 路径 ${b.path[0].level} → ${b.path[b.path.length-1].level}</div></div>`;
+    card.onclick = () => showBranch(b.id);
+    wrap.appendChild(card);
+    paintArt(card.querySelector("canvas"), b.art, b.color); // 固定分辨率，立即绘制
+  });
+}
+function buildBranchPage(id){
+  const b = branchOf(id);
+  $("#branchTitle").textContent = b.name;
+  $("#branchSub").textContent = b.desc;
+  $("#branchBack").onclick = showHome;
+  const wrap = $("#branchPath"); wrap.innerHTML = "";
+  b.path.forEach(node => {
+    const live = !!node.fn;
+    const el = document.createElement("div");
+    el.className = "pnode" + (live ? " live" : "");
+    el.style.setProperty("--bc", b.color);
+    el.innerHTML = `<div class="pdot"></div>
+      <div class="card"><div class="pname">${node.name}<small>${node.ver ? "版本 " + node.ver : "内容规划中"}</small></div>
+      <span class="lvl">${node.level}</span>
+      ${live ? '<span class="fn-chev">›</span>' : '<span class="soon">规划中</span>'}</div>`;
+    if(live) el.querySelector(".card").onclick = () => showFn(node.fn);
+    wrap.appendChild(el);
+  });
+}
+/* ================= 滑杆组件（iOS 质感） ================= */
+let sliders = {};
+function makeSlider(mount, cfg, onInput){
+  const row = document.createElement("div"); row.className = "slider-row"; row.dataset.p = cfg.key;
+  row.innerHTML = `<span class="slider-name">${cfg.label}</span>
+    <div class="slider"><div class="slider-track"></div><div class="slider-fill"></div><div class="slider-thumb"></div><div class="slider-bub"></div></div>
+    <span class="slider-val"></span>`;
+  mount.appendChild(row);
+  const semLine = document.createElement("div");
+  semLine.className = "sem-line"; semLine.dataset.p = cfg.key;
+  mount.appendChild(semLine); semEls[cfg.key] = semLine;
+  const slider = row.querySelector(".slider"), fill = row.querySelector(".slider-fill"),
+        thumb = row.querySelector(".slider-thumb"), valEl = row.querySelector(".slider-val"),
+        bub = row.querySelector(".slider-bub");
+  const col = cfg.color || "var(--fn-main)";
+  row.querySelector(".slider-name").style.color = col;
+  fill.style.background = col; valEl.style.color = col;
+  let val = cfg.value, dragging = false;
+  function render(){
+    const p = (val - cfg.min) / (cfg.max - cfg.min);
+    fill.style.width = (p*100)+"%"; thumb.style.left = (p*100)+"%";
+    valEl.textContent = fmt(val);
+    bub.textContent = cfg.label + " = " + fmt(val); bub.style.left = (p*100)+"%";
+  }
+  function setFromX(cx){
+    const r = slider.getBoundingClientRect();
+    let p = clamp((cx - r.left) / r.width, 0, 1);
+    let v = cfg.min + p * (cfg.max - cfg.min);
+    v = Math.round(v / cfg.step) * cfg.step;
+    v = Math.round(v * 1e8) / 1e8;
+    if(cfg.key === "k" && cur === "inverse" && Math.abs(v) < 0.25) v = v < 0 ? -0.5 : 0.5; // 跳过 0
+    if(v !== val){ val = v; render(); onInput(v); }
+  }
+  slider.addEventListener("pointerdown", e => {
+    dragging = true; slider.classList.add("dragging");
+    slider.setPointerCapture(e.pointerId); setFromX(e.clientX);
+    stopPlay(); setFocus(cfg.key);
+  });
+  slider.addEventListener("pointermove", e => { if(dragging) setFromX(e.clientX); });
+  const up = () => { dragging = false; slider.classList.remove("dragging"); scheduleClearFocus(); };
+  slider.addEventListener("pointerup", up); slider.addEventListener("pointercancel", up);
+  render();
+  return { set(v){ val = v; render(); }, get(){ return val; } };
+}
+
+/* ================= 图表引擎 ================= */
+const chart = { canvas:null, ctx:null, world:null };
+function chartInit(){
+  chart.canvas = $("#mainChart");
+  chart.ctx = chart.canvas.getContext("2d");
+}
+function chartResize(){
+  const c = chart.canvas, dpr = Math.min(devicePixelRatio || 1, 3);
+  const r = c.getBoundingClientRect();
+  c.width = Math.max(1, r.width * dpr); c.height = Math.max(1, r.height * dpr);
+  chart.dpr = dpr;
+}
+function w2s(x, y){
+  const r = chart.canvas.getBoundingClientRect(), w = chart.world;
+  return [ (x - w.xMin)/(w.xMax - w.xMin) * r.width,
+           r.height - (y - w.yMin)/(w.yMax - w.yMin) * r.height ];
+}
+function drawBase(gridA = 1, axesA = 1){
+  const ctx = chart.ctx, dpr = chart.dpr, w = chart.world;
+  const r = chart.canvas.getBoundingClientRect();
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, r.width, r.height);
+  const grid = cssVar("--grid"), axis = cssVar("--axis"), t3 = cssVar("--text-3");
+  ctx.globalAlpha = gridA;
+  ctx.strokeStyle = grid; ctx.lineWidth = 1; ctx.beginPath();
+  for(let gx = Math.ceil(w.xMin); gx <= w.xMax; gx++){ const [sx] = w2s(gx, 0); ctx.moveTo(sx, 0); ctx.lineTo(sx, r.height); }
+  for(let gy = Math.ceil(w.yMin); gy <= w.yMax; gy++){ const [, sy] = w2s(0, gy); ctx.moveTo(0, sy); ctx.lineTo(r.width, sy); }
+  ctx.stroke();
+  ctx.globalAlpha = axesA;
+  ctx.strokeStyle = axis; ctx.lineWidth = 1.5; ctx.beginPath();
+  let [ax0, ay0] = w2s(w.xMin, 0), [ax1] = w2s(w.xMax, 0);
+  ctx.moveTo(ax0, ay0); ctx.lineTo(ax1, ay0);
+  let [, by0] = w2s(0, w.yMin), [, by1] = w2s(0, w.yMax);
+  const [bx] = w2s(0, 0);
+  ctx.moveTo(bx, by0); ctx.lineTo(bx, by1); ctx.stroke();
+  ctx.fillStyle = axis;
+  const arrow = (x, y, ang) => { ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(4, 4); ctx.lineTo(-4, 4); ctx.closePath(); ctx.fill(); ctx.restore(); };
+  arrow(ax1 - 2, ay0, Math.PI/2); arrow(bx, by1 + 2, 0);
+  ctx.fillStyle = t3; ctx.font = "11px -apple-system, sans-serif"; ctx.textAlign = "center";
+  for(let gx = Math.ceil(w.xMin); gx <= w.xMax; gx++){ if(gx === 0) continue; const [sx, sy0] = w2s(gx, 0); ctx.fillText(String(gx), sx, sy0 + 14); }
+  ctx.textAlign = "right";
+  for(let gy = Math.ceil(w.yMin); gy <= w.yMax; gy++){ if(gy === 0) continue; const [sx0, sy] = w2s(0, gy); ctx.fillText(String(gy), sx0 - 6, sy + 4); }
+  ctx.fillText("O", bx - 6, ay0 + 14);
+  ctx.fillText("x", ax1 - 8, ay0 - 8); ctx.fillText("y", bx + 10, by1 + 14);
+  ctx.globalAlpha = 1;
+}
+function strokeCurve(fn, x0, x1, color, width = 3.5, reveal = 1){
+  const ctx = chart.ctx, w = chart.world;
+  ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineJoin = ctx.lineCap = "round";
+  ctx.beginPath();
+  const n = 240, lim = Math.max(1, Math.floor(n * reveal));
+  let started = false;
+  for(let i = 0; i <= lim; i++){
+    const x = x0 + (x1 - x0) * i / n, y = fn(x);
+    if(!isFinite(y)) continue;
+    const [sx, sy] = w2s(x, y);
+    if(sy < -60 || sy > chart.canvas.getBoundingClientRect().height + 60) { ctx.moveTo(sx, sy); continue; }
+    if(!started){ ctx.moveTo(sx, sy); started = true; } else ctx.lineTo(sx, sy);
+  }
+  ctx.stroke();
+}
+function dashedV(x){
+  const ctx = chart.ctx, t3 = cssVar("--text-3");
+  const [sx] = w2s(x, 0);
+  ctx.strokeStyle = t3; ctx.lineWidth = 1.2; ctx.setLineDash([6, 5]);
+  ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, chart.canvas.getBoundingClientRect().height); ctx.stroke();
+  ctx.setLineDash([]);
+  return sx;
+}
+function dot(x, y, color, alpha = 1){
+  const ctx = chart.ctx, [sx, sy] = w2s(x, y);
+  ctx.save(); ctx.globalAlpha = alpha;
+  ctx.shadowColor = color; ctx.shadowBlur = 12;
+  ctx.fillStyle = color; ctx.beginPath(); ctx.arc(sx, sy, 6, 0, 7); ctx.fill();
+  ctx.shadowBlur = 0; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.arc(sx, sy, 6, 0, 7); ctx.stroke();
+  ctx.restore();
+  return [sx, sy];
+}
+function placeChip(el, sx, sy, dy = 0){
+  el.style.left = sx + "px"; el.style.top = (sy + dy) + "px"; el.style.display = "block";
+}
+
+/* ================= 图内实时公式 ================= */
+function eqLinear(k, b, kk = "k", bk = "b"){
+  const K = v => `<span class="ek" data-psym="${kk}"><i>${v}</i></span>`, C = v => `<span class="eb" data-psym="${bk}"><i>${v}</i></span>`;
+  let s;
+  if(k === 0) s = C(fmt(b));
+  else {
+    s = (k===1 ? "" : k===-1 ? "\u2212" : fmt(k));
+    s = `${K(s)}<i>x</i>`;
+    if(b !== 0) s += b > 0 ? ` + ${C(fmt(b))}` : ` \u2212 ${C(fmt(Math.abs(b)))}`;
+  }
+  return `<i>y</i> = ${s}`;
+}
+function eqQuad(a, b, c){
+  if(Math.abs(a) < 1e-9) return eqLinear(b, c, "b", "c");
+  const A = v => `<span class="ek" data-psym="a"><i>${v}</i></span>`, B = v => `<span class="et" data-psym="b"><i>${v}</i></span>`,
+        C = v => `<span class="eb" data-psym="c"><i>${v}</i></span>`;
+  let s = `${A(a===1 ? "" : a===-1 ? "\u2212" : fmt(a))}<i>x</i><sup>2</sup>`;
+  if(b !== 0) s += b > 0 ? ` + ${B(fmt(b))}<i>x</i>` : ` \u2212 ${B(fmt(Math.abs(b)))}<i>x</i>`;
+  if(c !== 0) s += c > 0 ? ` + ${C(fmt(c))}` : ` \u2212 ${C(fmt(Math.abs(c)))}`;
+  return `<i>y</i> = ${s}`;
+}
+function eqInverse(k){
+  return `<i>y</i> = <span class="frac"><span class="num"><span class="ek" data-psym="k"><i>${fmt(k)}</i></span></span><span class="den"><i>x</i></span></span>`;
+}
+
+/* ================= 函数工作台：参数分解 / 探究三步 / 铁律 / 语义预告 ================= */
+const WB = {
+  linear: {
+    stage: "一次函数 · y = kx + b",
+    steps: ["拖 <b>k</b>：看直线方向与陡缓——k &gt; 0 上升，k &lt; 0 下降，|k| 越大越陡",
+            "拖 <b>b</b>：看直线上下平移，截距点跟着走",
+            "点 ▶ 演示，看 k 从 −3 到 3 的完整演绎"],
+    iron: "<b>铁律：</b>k = 0 时 y = b 是水平直线——它已经不是一次函数了。",
+    sem: {
+      k: st => { const k = st.k; return `<b>k = ${fmt(k)}</b> · ` + (k > 0 ? `每向右 1 格，向上 ${fmt(Math.abs(k))} 格` : k < 0 ? `每向右 1 格，向下 ${fmt(Math.abs(k))} 格` : `水平直线，无倾斜`); },
+      b: st => `<b>b = ${fmt(st.b)}</b> · ` + (st.b === 0 ? `直线过原点 (0, 0)` : `交 y 轴于 (0, ${fmt(st.b)})`)
+    },
+    decomp: st => [
+      {k:"k", v:fmt(st.k), c:"var(--fn-main)", d: st.k > 0 ? `斜率 · 上升（${Math.abs(st.k) >= 2 ? "陡峭" : "平缓"}）` : st.k < 0 ? `斜率 · 下降（${Math.abs(st.k) >= 2 ? "陡峭" : "平缓"}）` : `斜率 · 水平`},
+      {k:"b", v:fmt(st.b), c:"var(--ent-b)", d: st.b === 0 ? `截距 · 过原点` : `截距 · 交 y 轴于 (0, ${fmt(st.b)})`},
+      {k:"式", v:"y=kx+b", c:"var(--text-1)", d:`图像是直线，k 定方向、b 定位置`}
+    ]
+  },
+  quadratic: {
+    stage: "二次函数 · y = ax² + bx + c",
+    steps: ["拖 <b>a</b>：看开口方向与宽窄——|a| 越大开口越窄",
+            "拖 <b>b</b>、<b>c</b>：看顶点漂移与上下平移",
+            "盯住对称轴 x = −b/2a，看它如何跟着动"],
+    iron: "<b>铁律：</b>a = 0 时退化为直线；抛物线永远关于 x = −b/2a 对称。",
+    sem: {
+      a: st => `<b>a = ${fmt(st.a)}</b> · ` + (st.a > 0 ? `开口向上` : st.a < 0 ? `开口向下` : `已退化为直线`) + (Math.abs(st.a) > 1e-9 ? `，|a| 越大开口越窄` : ``),
+      b: st => { const xv = Math.abs(st.a) > 1e-9 ? -st.b/(2*st.a) : NaN; return `<b>b = ${fmt(st.b)}</b> · ` + (isFinite(xv) ? `对称轴 x = ${fmt(xv)}` : `a = 0，对称轴不存在`); },
+      c: st => `<b>c = ${fmt(st.c)}</b> · 交 y 轴于 (0, ${fmt(st.c)})`
+    },
+    decomp: st => {
+      const deg = Math.abs(st.a) < 1e-9, xv = deg ? NaN : -st.b/(2*st.a);
+      return [
+        {k:"a", v:fmt(st.a), c:"var(--fn-main)", d: deg ? `开口 · 已退化为直线` : `开口${st.a > 0 ? "向上" : "向下"} · |a| = ${fmt(Math.abs(st.a))}`},
+        {k:"b", v:fmt(st.b), c:"var(--ent-t)", d: deg ? `一次项系数` : `对称轴 x = ${fmt(xv)}`},
+        {k:"c", v:fmt(st.c), c:"var(--ent-b)", d:`交 y 轴于 (0, ${fmt(st.c)})`}
+      ];
+    }
+  },
+  inverse: {
+    stage: "反比例函数 · y = k/x",
+    steps: ["拖 <b>k</b>：看曲线在哪些象限——k &gt; 0 一三，k &lt; 0 二四",
+            "拖曲线上的点：矩形面积恒为 |k|，亲手验证",
+            "把 k 拖近 0：看曲线如何贴向坐标轴"],
+    iron: "<b>铁律：</b>k ≠ 0 是底线；x = 0、y = 0 永远取不到。",
+    sem: {
+      k: st => `<b>k = ${fmt(st.k)}</b> · ` + (st.k > 0 ? `分布在一、三象限` : st.k < 0 ? `分布在二、四象限` : `无意义`) + `，|k| 越大离坐标轴越远`
+    },
+    decomp: st => [
+      {k:"k", v:fmt(st.k), c:"var(--fn-main)", d: st.k > 0 ? `象限 · 一、三` : st.k < 0 ? `象限 · 二、四` : `无意义`},
+      {k:"|k|", v:fmt(Math.abs(st.k)), c:"var(--text-1)", d:`矩形面积恒等于 |k|`}
+    ]
+  }
+};
+let semEls = {};
+function updateWorkbench(){
+  const st = state[cur], w = WB[cur]; if(!w) return;
+  Object.keys(w.sem).forEach(k => { if(semEls[k]) semEls[k].innerHTML = w.sem[k](st); });
+  $("#decompList").innerHTML = w.decomp(st).map(r =>
+    `<div class="decomp-row"><span class="decomp-k" style="color:${r.c}">${r.k}</span><span class="decomp-v">${r.v}</span><span class="decomp-d">${r.d}</span></div>`).join("");
+  renderKeyStrip();
+}
+
+/* ================= 关键点读数条（桌面实验台） ================= */
+function keyPoints(){
+  const st = state[cur];
+  if(cur === "linear"){
+    const k = st.k, b = st.b;
+    return [
+      {l:"与 y 轴交点", v:`(0, ${fmt(b)})`, c:"var(--ent-b)"},
+      {l:"与 x 轴交点", v: k !== 0 ? `(${fmt(-b/k)}, 0)` : "—", c:"var(--fn-main)"},
+      {l:"斜率 k", v: fmt(k), c:"var(--fn-main)"}
+    ];
+  }
+  if(cur === "quadratic"){
+    const a = st.a, b = st.b, c = st.c;
+    const vx = a !== 0 ? -b/(2*a) : 0, vy = a !== 0 ? (4*a*c-b*b)/(4*a) : c;
+    return [
+      {l:"顶点", v: a !== 0 ? `(${fmt(vx)}, ${fmt(vy)})` : "—", c:"var(--fn-warn)"},
+      {l:"对称轴", v: a !== 0 ? `x = ${fmt(vx)}` : "—", c:"var(--ent-t)"},
+      {l:"与 y 轴交点", v:`(0, ${fmt(c)})`, c:"var(--ent-b)"}
+    ];
+  }
+  const k = st.k;
+  return [
+    {l:"对称中心", v:"O(0, 0)", c:"var(--fn-warn)"},
+    {l:"k 值", v: fmt(k), c:"var(--fn-main)"},
+    {l:"所在象限", v: k > 0 ? "一、三" : k < 0 ? "二、四" : "—", c:"var(--fn-accent)"}
+  ];
+}
+function renderKeyStrip(){
+  const el = $("#keyStrip"); if(!el) return;
+  el.innerHTML = keyPoints().map(p =>
+    `<div class="key-cell"><div class="kl">${p.l}</div><div class="kv" style="color:${p.c}">${p.v}</div></div>`
+  ).join("");
+}
+/* ================= 课程目录（桌面常驻左侧，模块制） ================= */
+const BRANCH_NUMS = ["一","二","三","四","五","六"];
+function buildCatalog(){
+  const b = branchOf(navBranch), cat = $("#catalog");
+  cat.style.setProperty("--bc", b.color);
+  const liveCount = BRANCHES.reduce((a, x) => a + x.path.filter(n => n.fn).length, 0);
+  let h = `<div class="cat-head">课程目录 <span class="cat-badge">${BRANCHES.length} 学习模块</span></div>` +
+    `<div class="cat-desc">模块化数学可视化实验 · ${liveCount} 个互动实验</div>` +
+    `<div class="cat-search"><input id="catSearch" placeholder="搜索知识点"></div>`;
+  BRANCHES.forEach((br, bi) => {
+    const open = br.id === b.id;
+    h += `<div class="cat-mod${open ? " open" : ""}" style="--bc:${br.color}">` +
+      `<div class="cat-mod-h" data-br="${br.id}"><span class="cat-num">${BRANCH_NUMS[bi] || (bi+1)}</span>${br.name}<span class="cat-chev">›</span></div>`;
+    if(open){
+      h += `<div class="cat-nodes">` + br.path.map((n, i) => {
+        const live = !!n.fn;
+        return `<div class="cat-node${live ? " live" : ""}${n.fn === cur ? " active" : ""}"${live ? ` data-fn="${n.fn}"` : ""}>` +
+          `<span class="cn-num">${i + 1}</span><span class="cname">${n.name}<small>${n.ver ? n.ver : n.level + " · 规划中"}</small></span></div>`;
+      }).join("") + `</div>`;
+    }
+    h += `</div>`;
+  });
+  cat.innerHTML = h;
+  cat.querySelectorAll(".cat-node.live").forEach(el => {
+    el.onclick = () => { if(el.dataset.fn !== cur) showFn(el.dataset.fn); };
+  });
+  cat.querySelectorAll(".cat-mod-h").forEach(el => {
+    el.onclick = () => { if(el.dataset.br !== navBranch) showBranch(el.dataset.br); };
+  });
+  const si = $("#catSearch");
+  si.oninput = () => {
+    const q = si.value.trim();
+    cat.querySelectorAll(".cat-node").forEach(el => {
+      el.style.display = (!q || el.textContent.includes(q)) ? "" : "none";
+    });
+  };
+}
+
+/* ================= 函数页构建 ================= */
+let chips = {};
+function buildFnPage(){
+  const cfg = FN[cur], s = state[cur];
+  buildCatalog();
+  $("#fnTitle").textContent = cfg.title;
+  $("#fnVer").textContent = cfg.ver;
+  $("#fnCrumb").textContent = branchOf(cfg.branchId).name;
+  $("#fnBack").onclick = () => showBranch(cfg.branchId);
+  $("#fnSub").innerHTML = cfg.sub + ' <span class="tex"></span>'; tex($("#fnSub .tex"), cfg.formula);
+  tex($("#conceptTex"), cfg.formula);
+  $("#conceptText").innerHTML = cfg.concept;
+  $("#exQ").innerHTML = cfg.exQ; $("#exBody").innerHTML = cfg.exBody; $("#exA").innerHTML = cfg.exA;
+  const sm = $("#sliders"); sm.innerHTML = ""; sliders = {}; semEls = {};
+  $("#stepsList").innerHTML = WB[cur].steps.map(t => `<li>${t}</li>`).join("");
+  $("#ironRule").innerHTML = WB[cur].iron;
+  $("#zoomCard").classList.remove("on");
+  $("#stageTitle").textContent = WB[cur].stage;
+  document.body.classList.remove("focus-mode");
+  const fmb = $("#focusModeBtn"); if(fmb){ fmb.classList.remove("on"); }
+  cfg.params.forEach(p => {
+    sliders[p.key] = makeSlider(sm, {...p, value: s[p.key]}, v => { s[p.key] = v; draw(); });
+  });
+  const gc = $("#guideChips"); gc.innerHTML = "";
+  cfg.guides.forEach(([label, target]) => {
+    const b = document.createElement("button"); b.className = "guide-chip"; b.textContent = label;
+    b.onclick = () => tweenParams(target);
+    gc.appendChild(b);
+  });
+  const ov = $("#overlay"); ov.innerHTML = ""; chips = {};
+  const mk = (id, cls = "ov-chip") => {
+    const d = document.createElement("div"); d.className = cls; d.style.display = "none";
+    d.id = "chip-" + id; ov.appendChild(d); chips[id] = d; return d;
+  };
+  if(cur === "linear"){ mk("pt"); }
+  if(cur === "quadratic"){ mk("vertex"); mk("axis"); }
+  if(cur === "inverse"){ mk("area"); mk("asx", "ov-tag"); mk("asy", "ov-tag"); }
+  chart.world = cfg.world;
+  chartResize();
+  startIntro(); // 三段式入场
+}
+function setStatus(kind, arrow, text){
+  const c = $("#statusChip");
+  c.className = "status-chip " + kind;
+  c.querySelector(".arrow").textContent = arrow;
+  c.querySelector(".txt").textContent = text;
+}
+function tweenParams(target, dur = 450){
+  stopPlay();
+  const s = state[cur];
+  const from = {}; Object.keys(target).forEach(k => from[k] = s[k]);
+  const t0 = performance.now();
+  cancelAnimationFrame(tweenParams._id);
+  const frame = t => {
+    const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    Object.keys(target).forEach(k => {
+      s[k] = from[k] + (target[k] - from[k]) * e;
+      if(sliders[k]) sliders[k].set(s[k]);
+    });
+    draw();
+    if(p < 1 && !reducedMotion) tweenParams._id = requestAnimationFrame(frame);
+  };
+  if(reducedMotion){ Object.keys(target).forEach(k => { s[k] = target[k]; sliders[k].set(s[k]); }); draw(); }
+  else tweenParams._id = requestAnimationFrame(frame);
+}
+
+/* ================= 动态层：焦点 + 演示播放 ================= */
+let focus = null, focusT = null;
+function setFocus(p){
+  focus = p;
+  const v = $("#view-fn");
+  v.classList.remove("focus-k","focus-b","focus-a","focus-c");
+  v.classList.add("focus-" + p);
+  clearTimeout(focusT);
+}
+function scheduleClearFocus(){ clearTimeout(focusT); focusT = setTimeout(clearFocus, 700); }
+function clearFocus(){
+  focus = null; clearTimeout(focusT);
+  $("#view-fn").classList.remove("focus-k","focus-b","focus-a","focus-c");
+}
+let play = null, playSpeed = 1;
+function togglePlay(){
+  if(play){ stopPlay(); return; }
+  const cfg = FN[cur], st = state[cur], p = cfg.params[0]; // k / a / k
+  setFocus(p.key);
+  const dur = 4500 / playSpeed, t0 = performance.now();
+  st[p.key] = p.min; if(sliders[p.key]) sliders[p.key].set(p.min);
+  const btn = $("#playBtn"); btn.textContent = "⏸ 停止"; btn.classList.add("playing");
+  play = {key:p.key, id:null};
+  const frame = t => {
+    const pr = Math.min(1, (t - t0) / dur);
+    st[p.key] = Math.round((p.min + (p.max - p.min) * pr) * 1e8) / 1e8;
+    if(sliders[p.key]) sliders[p.key].set(st[p.key]);
+    draw();
+    if(pr < 1 && play) play.id = requestAnimationFrame(frame);
+    else stopPlay();
+  };
+  play.id = requestAnimationFrame(frame);
+}
+function stopPlay(){
+  if(!play) return;
+  cancelAnimationFrame(play.id); play = null;
+  const btn = $("#playBtn"); btn.textContent = "▶ 演示"; btn.classList.remove("playing");
+  scheduleClearFocus();
+}
+
+/* ================= 绘制 ================= */
+let intro = {active:false, t0:0, dur:1100, id:null};
+function startIntro(){
+  if(reducedMotion){ intro.active = false; draw(); return; }
+  intro.active = true; intro.t0 = performance.now();
+  cancelAnimationFrame(intro.id);
+  const frame = () => { draw(); if(intro.active) intro.id = requestAnimationFrame(frame); };
+  intro.id = requestAnimationFrame(frame);
+}
+function draw(){
+  if(!$("#view-fn").classList.contains("active")) return;
+  if(!chart.world) return;
+  // 三段式入场：轴(0-.3) → 网格(.08-.38) → 曲线生长(.3-.9) → 标注(.72-1)
+  let ip = 1;
+  if(intro.active){
+    ip = Math.min(1, (performance.now() - intro.t0) / intro.dur);
+    if(ip >= 1) intro.active = false;
+  }
+  const ez = t => { t = clamp(t, 0, 1); return t*t*(3-2*t); };
+  const axesA = ez(ip/0.3), gridA = ez((ip-0.08)/0.3),
+        curveR = ez((ip-0.3)/0.6), ptsA = ez((ip-0.72)/0.28);
+  drawBase(gridA, axesA);
+  const s = state[cur], main = cssVar("--fn-main"), warn = cssVar("--fn-warn");
+  const dim = o => (!focus || focus === o) ? 1 : .35; // 焦点高亮-变灰
+  $("#overlay").style.opacity = ptsA; $("#chartEq").style.opacity = ptsA;
+  Object.values(chips).forEach(c => c.style.display = "none");
+  if(cur === "linear"){
+    const {k, b} = s, entB = cssVar("--ent-b");
+    $("#chartEq").innerHTML = eqLinear(k, b);
+    strokeCurve(x => k*x + b, chart.world.xMin, chart.world.xMax, main, 3.5, curveR);
+    const [sx, sy] = dot(0, b, entB, ptsA * dim("b"));
+    const chip = chips.pt; chip.textContent = `(0, ${fmt(b)})`; chip.style.color = entB;
+    placeChip(chip, sx, sy);
+    if(k > 0) setStatus("green", "↗", `上升 · k > 0，直线从左到右上升`);
+    else if(k < 0) setStatus("red", "↘", `下降 · k < 0，直线从左到右下降`);
+    else setStatus("blue", "→", `水平 · k = 0，此时为水平直线 y = ${fmt(b)}`);
+  }
+  if(cur === "quadratic"){
+    const {a, b, c} = s, entB = cssVar("--ent-b");
+    $("#chartEq").innerHTML = eqQuad(a, b, c);
+    if(Math.abs(a) < 1e-9){
+      strokeCurve(x => b*x + c, chart.world.xMin, chart.world.xMax, main, 3.5, curveR);
+      setStatus("red", "⚠", `a = 0 · 已退化为一次函数 y = ${fmt(b)}x + ${fmt(c)}（图像为直线）`);
+    } else {
+      strokeCurve(x => a*x*x + b*x + c, chart.world.xMin, chart.world.xMax, main, 3.5, curveR);
+      const xv = -b/(2*a), yv = a*xv*xv + b*xv + c;
+      const sx = dashedV(xv);
+      const tag = chips.axis; tag.textContent = `x = ${fmt(xv)}`; tag.style.display = "block";
+      tag.style.left = sx + "px"; tag.style.top = "6px";
+      const [dx, dy] = dot(xv, yv, warn, ptsA);
+      const chip = chips.vertex; chip.textContent = `顶点(${fmt(xv)}, ${fmt(yv)})`; chip.style.color = warn;
+      placeChip(chip, dx, dy);
+      dot(0, c, entB, ptsA * dim("c"));
+    }
+  }
+  if(cur === "inverse"){
+    const {k} = s, w = chart.world;
+    $("#chartEq").innerHTML = eqInverse(k);
+    if(Math.abs(k) < 1e-9){ setStatus("blue", "∅", "k = 0 无意义：y = 0/x 不是反比例函数"); }
+    else {
+      strokeCurve(x => k/x, 0.12, w.xMax, main, 3.5, curveR);
+      strokeCurve(x => k/x, w.xMin, -0.12, main, 3.5, curveR);
+      const ctx = chart.ctx, t3 = cssVar("--text-3"), r = chart.canvas.getBoundingClientRect();
+      ctx.strokeStyle = t3; ctx.lineWidth = 1.2; ctx.setLineDash([6,5]); ctx.beginPath();
+      const [zx] = w2s(0,0); ctx.moveTo(zx,0); ctx.lineTo(zx,r.height);
+      const [, zy] = w2s(0,0); ctx.moveTo(0,zy); ctx.lineTo(r.width,zy); ctx.stroke(); ctx.setLineDash([]);
+      const asx = chips.asx; asx.textContent = "x = 0"; asx.style.display="block"; asx.style.left=(zx+28)+"px"; asx.style.top="4px";
+      const asy = chips.asy; asy.textContent = "y = 0"; asy.style.display="block"; asy.style.left=(r.width-30)+"px"; asy.style.top=(zy+8)+"px";
+      let px = s.px;
+      if(k > 0 && px < 0) px = s.px = 2;
+      if(k < 0 && px > 0) px = s.px = -2;
+      const py = k/px;
+      const [ox, oy] = w2s(0,0), [qx, qy] = w2s(px, py);
+      ctx.fillStyle = main + "22"; ctx.strokeStyle = main; ctx.setLineDash([5,4]); ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.rect(Math.min(ox,qx), Math.min(oy,qy), Math.abs(qx-ox), Math.abs(qy-oy)); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+      dot(px, py, warn, ptsA);
+      const chip = chips.area; chip.textContent = `面积 = |k| = ${fmt(Math.abs(k))}`;
+      placeChip(chip, (ox+qx)/2, Math.max(oy,qy), 12); chip.style.transform = "translate(-50%,0)";
+      if(k > 0) setStatus("green", "◈", "分布在一、三象限 · k > 0");
+      else setStatus("red", "◈", "分布在二、四象限 · k < 0");
+    }
+  }
+  updateWorkbench();
+}
+// 反比例拖点
+(function(){
+  let draggingPt = false;
+  document.addEventListener("pointerdown", e => {
+    if(cur !== "inverse" || !$("#view-fn").classList.contains("active")) return;
+    if(e.target !== $("#mainChart")) return;
+    const r = chart.canvas.getBoundingClientRect(), w = chart.world, s = state.inverse;
+    const wx = w.xMin + (e.clientX - r.left)/r.width * (w.xMax - w.xMin);
+    const wy = w.yMax - (e.clientY - r.top)/r.height * (w.yMax - w.yMin);
+    const py = s.k / s.px;
+    if(Math.hypot(wx - s.px, wy - py) < 0.9){ draggingPt = true; e.preventDefault(); }
+  });
+  document.addEventListener("pointermove", e => {
+    if(!draggingPt) return;
+    const r = chart.canvas.getBoundingClientRect(), w = chart.world, s = state.inverse;
+    const wx = w.xMin + (e.clientX - r.left)/r.width * (w.xMax - w.xMin);
+    s.px = s.k > 0 ? clamp(wx, 0.5, 6) : clamp(wx, -6, -0.5);
+    draw();
+  });
+  document.addEventListener("pointerup", () => draggingPt = false);
+})();
+
+/* 关键点点击放大（读数放大窗） */
+(function(){
+  let downPos = null;
+  document.addEventListener("pointerdown", e => {
+    if(e.target !== $("#mainChart")) return;
+    downPos = [e.clientX, e.clientY];
+  });
+  document.addEventListener("pointerup", e => {
+    if(!downPos || e.target !== $("#mainChart")){ downPos = null; return; }
+    const moved = Math.hypot(e.clientX - downPos[0], e.clientY - downPos[1]);
+    downPos = null;
+    if(moved > 10 || !$("#view-fn").classList.contains("active")) return;
+    const r = $("#mainChart").getBoundingClientRect(), w = chart.world, st = state[cur];
+    const wx = w.xMin + (e.clientX - r.left)/r.width * (w.xMax - w.xMin);
+    const wy = w.yMax - (e.clientY - r.top)/r.height * (w.yMax - w.yMin);
+    let pt = null;
+    if(cur === "linear") pt = {x:0, y:st.b, t:"截距点", v:`(0, ${fmt(st.b)})`, d:`b = ${fmt(st.b)} · 交 y 轴`, c:cssVar("--ent-b")};
+    else if(cur === "quadratic" && Math.abs(st.a) > 1e-9){
+      const xv = -st.b/(2*st.a), yv = st.a*xv*xv + st.b*xv + st.c;
+      pt = {x:xv, y:yv, t:"顶点", v:`(${fmt(xv)}, ${fmt(yv)})`, d:`对称轴 x = ${fmt(xv)}`, c:cssVar("--fn-warn")};
+    } else if(cur === "inverse" && Math.abs(st.k) > 1e-9){
+      pt = {x:st.px, y:st.k/st.px, t:"曲线上的点", v:`(${fmt(st.px)}, ${fmt(st.k/st.px)})`, d:`矩形面积 = |k| = ${fmt(Math.abs(st.k))}`, c:cssVar("--fn-warn")};
+    }
+    const zc = $("#zoomCard");
+    if(pt && Math.hypot(wx - pt.x, wy - pt.y) < 1.0){
+      zc.querySelector(".zc-t").textContent = pt.t;
+      const zv = zc.querySelector(".zc-v"); zv.textContent = pt.v; zv.style.color = pt.c;
+      zc.querySelector(".zc-d").textContent = pt.d;
+      zc.classList.remove("on"); void zc.offsetWidth; zc.classList.add("on");
+    } else zc.classList.remove("on");
+  });
+})();
+
+/* ================= 首页 hero：顶点漂移的抛物线 ================= */
+let heroRAF = null;
+function startHero(){
+  const cv = $("#heroCanvas"); if(!cv) return;
+  const dpr = Math.min(devicePixelRatio||1, 2), r = cv.getBoundingClientRect();
+  if(r.width === 0) return;
+  cv.width = r.width*dpr; cv.height = r.height*dpr;
+  const ctx = cv.getContext("2d");
+  const W = {xMin:-6,xMax:6,yMin:-6,yMax:6};
+  const w2sH = (x,y) => [ (x-W.xMin)/(W.xMax-W.xMin)*r.width, r.height-(y-W.yMin)/(W.yMax-W.yMin)*r.height ];
+  const drawHero = t => {
+    ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,r.width,r.height);
+    const grid = cssVar("--grid"), main = cssVar("--fn-main");
+    ctx.strokeStyle = grid; ctx.lineWidth = 1; ctx.beginPath();
+    for(let gx=-6; gx<=6; gx+=2){ const [sx]=w2sH(gx,0); ctx.moveTo(sx,0); ctx.lineTo(sx,r.height); }
+    for(let gy=-6; gy<=6; gy+=2){ const [,sy]=w2sH(0,gy); ctx.moveTo(0,sy); ctx.lineTo(r.width,sy); }
+    ctx.stroke();
+    const h = reducedMotion ? 0 : 2.4*Math.sin(t/1400);
+    ctx.strokeStyle = main; ctx.lineWidth = 4; ctx.lineCap="round";
+    ctx.beginPath();
+    for(let i=0;i<=120;i++){
+      const x = -6 + 12*i/120, y = 0.45*(x-h)*(x-h) - 2.5;
+      const [sx,sy] = w2sH(x,y); i?ctx.lineTo(sx,sy):ctx.moveTo(sx,sy);
+    }
+    ctx.stroke();
+    const [vx,vy] = w2sH(h, -2.5);
+    ctx.fillStyle = cssVar("--fn-warn"); ctx.beginPath(); ctx.arc(vx,vy,6,0,7); ctx.fill();
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(vx,vy,6,0,7); ctx.stroke();
+  };
+  stopHero();
+  if(reducedMotion){ drawHero(0); return; }
+  const loop = t => { drawHero(t); heroRAF = requestAnimationFrame(loop); };
+  heroRAF = requestAnimationFrame(loop);
+}
+function stopHero(){ if(heroRAF) cancelAnimationFrame(heroRAF); heroRAF = null; }
+
+/* ================= 启动 ================= */
+chartInit(); buildBranches(); startHero();
+window.addEventListener("resize", () => {
+  chartResize(); draw();
+  if($("#view-home").classList.contains("active")) startHero();
+});
+</script>
+</body>
+</html>
